@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEO 網站設計工具 · Morcept</title>
+<style>
+  :root {
+    --color-primary: #151C31;
+    --color-secondary: #F7B52E;
+    --color-cta: #F8CB2A;
+    --color-neutral: #FEF0C7;
+    --color-surface: #FFFFFF;
+    --color-line: #E4DCC4;
+    --color-muted: #6B7280;
+    --color-danger: #B4472A;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 40px;
+    --font: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Segoe UI", sans-serif;
+    --font-mono: "SFMono-Regular", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--color-neutral);
+    color: var(--color-primary);
+    line-height: 1.6;
+  }
+  .app { max-width: 1080px; margin: 0 auto; padding: var(--space-lg) var(--space-md) var(--space-xl); }
+  .section-heading { font-size: 0.78rem; font-weight: bold; letter-spacing: 0.08em; color: var(--color-muted); text-transform: uppercase; margin: var(--space-lg) 0 var(--space-sm); padding-bottom: 4px; border-bottom: 1px solid var(--color-line); }
+  .section-heading:first-of-type { margin-top: 0; }
+  header.top {
+    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+    gap: var(--space-md); margin-bottom: var(--space-lg);
+    border-bottom: 2px solid var(--color-primary); padding-bottom: var(--space-md);
+  }
+  header.top h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.02em; }
+  header.top .sub { margin: 4px 0 0; font-size: 0.85rem; color: var(--color-muted); }
+
+  .mode-toggle { display: flex; gap: 6px; background: var(--color-surface); border-radius: var(--radius-lg); padding: 4px; border: 1px solid var(--color-line); }
+  .mode-toggle button {
+    border: none; background: transparent; padding: 8px 16px; border-radius: var(--radius-md);
+    font-family: var(--font); font-size: 0.85rem; cursor: pointer; color: var(--color-primary);
+  }
+  .mode-toggle button.active { background: var(--color-primary); color: var(--color-cta); }
+  .mode-note { font-size: 0.75rem; color: var(--color-muted); margin: 6px 0 0; }
+
+  .card {
+    background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-line);
+    padding: var(--space-md) var(--space-lg); margin-bottom: var(--space-md);
+    box-shadow: 0 1px 2px rgba(21,28,49,0.04);
+  }
+  .card h2 { font-size: 1.05rem; margin: 0 0 var(--space-sm); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card h2 .hint { font-size: 0.75rem; font-weight: normal; color: var(--color-muted); }
+  .card p.note { font-size: 0.8rem; color: var(--color-muted); margin: -4px 0 var(--space-sm); }
+  .card[data-scope] { }
+
+  .quota-badge { display: inline-block; background: var(--color-neutral); border: 1px solid var(--color-secondary); border-radius: var(--radius-sm); padding: 2px 8px; font-family: var(--font-mono); font-size: 0.72rem; }
+  .quota-warn { color: var(--color-danger); font-size: 0.78rem; margin-top: 4px; }
+
+  input[type=text], input[type=date], input[type=number], textarea, select {
+    font-family: var(--font); border: 1px solid var(--color-line); border-radius: var(--radius-sm);
+    padding: 8px 10px; font-size: 0.88rem; width: 100%; background: var(--color-surface); color: var(--color-primary);
+  }
+  textarea { resize: vertical; min-height: 54px; }
+  label { font-size: 0.8rem; color: var(--color-muted); display: block; margin-bottom: 3px; }
+  .field { margin-bottom: var(--space-sm); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
+  .field-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-sm); }
+  .checkbox-row { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; margin-bottom: 6px; }
+  .checkbox-row input { width: auto; }
+
+  button.btn { font-family: var(--font); border: none; border-radius: var(--radius-sm); padding: 9px 18px; font-size: 0.85rem; cursor: pointer; }
+  button.btn-cta { background: var(--color-cta); color: var(--color-primary); font-weight: bold; }
+  button.btn-cta:hover { background: var(--color-secondary); }
+  button.btn-ghost { background: transparent; border: 1px solid var(--color-line); color: var(--color-primary); }
+  button.btn-danger { background: transparent; color: var(--color-danger); border: none; font-size: 0.78rem; cursor: pointer; }
+  button.btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  table.entries { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  table.entries th { text-align: left; font-size: 0.7rem; color: var(--color-muted); border-bottom: 1px solid var(--color-primary); padding: 4px 6px; }
+  table.entries td { padding: 8px 6px; border-bottom: 1px solid var(--color-line); vertical-align: top; }
+  .tag { display: inline-block; border-radius: var(--radius-sm); padding: 2px 7px; font-size: 0.72rem; white-space: nowrap; margin: 1px 3px 1px 0; }
+  .tag-yes { background: var(--color-neutral); border: 1px solid var(--color-secondary); }
+  .tag-no { color: var(--color-muted); border: 1px solid var(--color-line); }
+  .tag-fail { color: var(--color-danger); border: 1px solid var(--color-danger); }
+
+  .item-card { border-left: 4px solid var(--color-secondary); padding: 10px 14px; margin-bottom: 10px; background: var(--color-neutral); border-radius: var(--radius-sm); }
+  .item-card .title { font-weight: bold; margin-bottom: 4px; }
+  .item-card .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .item-card textarea, .item-card input, .item-card select { margin-top: 4px; }
+  .item-card.rejected { opacity: 0.5; }
+
+  .copy-box { position: relative; }
+  .copy-box textarea { font-family: var(--font-mono); font-size: 0.78rem; }
+  .copy-box .copy-btn { position: absolute; top: 6px; right: 6px; }
+
+  .empty { color: var(--color-muted); font-size: 0.85rem; padding: var(--space-sm) 0; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--color-primary); color: var(--color-cta); padding: 10px 20px; border-radius: var(--radius-md);
+    font-size: 0.85rem; opacity: 0; pointer-events: none; transition: opacity 0.3s; max-width: 80vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: var(--color-danger); color: #fff; }
+
+  details.help summary { cursor: pointer; font-weight: bold; font-size: 1.05rem; list-style: none; }
+  details.help summary::-webkit-details-marker { display: none; }
+  details.help summary::before { content: "▸ "; }
+  details.help[open] summary::before { content: "▾ "; }
+  details.help ol { padding-left: 1.2em; margin: var(--space-sm) 0; }
+  details.help li { margin-bottom: 6px; }
+
+  @media (max-width: 640px) {
+    .field-row, .field-row3 { grid-template-columns: 1fr; }
+    header.top { flex-direction: column; align-items: stretch; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>GEO 網站設計工具</h1>
+      <p class="sub">依報價項目產出 Schema／FAQ／內部連結／技術檢核等設計素材（不含長期成效追蹤，追蹤請用「網站追蹤」工具）</p>
+      <p class="sub">此工具資料一般只留在「目前這個瀏覽器分頁」的工作階段中，不會上傳到任何伺服器——關閉分頁／瀏覽器通常會清除，但瀏覽器的分頁還原、複製分頁等機制仍可能保留資料，請勿在此輸入密碼或機密資訊。表格裡還沒按「儲存」的內容，重新整理就會消失。 <button class="btn btn-danger btn-sm" onclick="clearAllData()" style="vertical-align:baseline;">清除目前所有資料，重新開始</button></p>
+    </div>
+    <div>
+      <div class="mode-toggle" role="tablist">
+        <button id="modeBtnExisting" onclick="setMode('existing')">既有網站優化</button>
+        <button id="modeBtnNewsite" onclick="setMode('newsite')">新站架設階段</button>
+      </div>
+      <p class="mode-note" id="modeNote"></p>
+    </div>
+  </header>
+
+  <div class="section-heading">基本資料</div>
+
+  <div class="card">
+    <h2>品牌基本資料</h2>
+    <p class="note">所有模組共用這份資料（品牌名稱／官方網域用於 Schema 產出與 Entity 一致性比對）</p>
+    <div class="field-row3">
+      <div class="field"><label>品牌／企業名稱</label><input type="text" id="brandName"></div>
+      <div class="field"><label>官方網域（不含 https://）</label><input type="text" id="brandDomain" placeholder="morcept.com"></div>
+      <div class="field"><label>產業別</label><input type="text" id="brandIndustry"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>主要產品／服務（簡述）</label><input type="text" id="brandProducts"></div>
+      <div class="field"><label>目標受眾</label><input type="text" id="brandAudience"></div>
+    </div>
+    <button class="btn btn-cta" onclick="saveBrand()">儲存品牌資料</button>
+  </div>
+
+  <div class="card">
+    <h2>頁面清單 <span class="hint" id="pageQuotaHint"></span></h2>
+    <p class="note">直接在下面表格裡填寫多個頁面，填完全部再按一次「儲存頁面清單」即可，不用一列一列分開新增。「列為重點頁面」是既有優化模式的核心頁面、也是新站模式權威來源／可信度標記等模組的檢查對象。</p>
+    <div id="pageQuotaWarn"></div>
+    <div id="languageQuotaNote"></div>
+    <div style="overflow-x:auto;">
+      <table class="entries" id="pagesEditTable">
+        <thead><tr><th style="min-width:120px;">頁面標題</th><th style="min-width:140px;">網址／路徑</th><th style="min-width:100px;">類型</th><th style="min-width:140px;">主題標籤</th><th style="min-width:80px;">語言</th><th>重點頁</th><th style="min-width:100px;">備註</th><th></th></tr></thead>
+        <tbody id="pagesEditBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:var(--space-sm);">
+      <button class="btn btn-ghost" onclick="addBlankPageRow()">＋ 新增一列</button>
+      <button class="btn btn-cta" onclick="savePagesTable()">儲存頁面清單</button>
+    </div>
+  </div>
+
+  <div class="section-heading">內容與結構規劃</div>
+
+  <div class="card" data-scope="both">
+    <h2>Schema 結構化資料規劃 <span class="quota-badge">至多 23 頁</span></h2>
+    <p class="note">依頁面類型規則式建議 Schema 類型，並帶出可編輯、可複製的 JSON-LD 模板；實際套用仍需人工把品牌／頁面資料填齊後貼回網站。</p>
+    <div id="schemaQuotaWarn"></div>
+    <div id="schemaList"></div>
+  </div>
+
+  <div class="card" data-scope="existing">
+    <h2>核心頁面文案健檢 <span class="quota-badge">至多 8 個核心頁</span></h2>
+    <p class="note">依品牌定位／產品服務／特色／適用對象／應用情境／可解決需求六個面向逐項檢視，標出缺漏或不清楚之處並產出補充方向——不含全新文案撰寫或大篇幅重寫。</p>
+    <div id="copyCheckQuotaWarn"></div>
+    <div id="copyCheckList"></div>
+  </div>
+
+  <div class="card" data-scope="both">
+    <h2>FAQ／品牌問答庫 <span class="hint" id="faqQuotaHint"></span></h2>
+    <p class="note">依頁面主題產出候選問題方向（規則式模板，非全文案撰寫），人工挑選、微調後採用。</p>
+    <div id="faqQuotaWarn"></div>
+    <div id="faqList"></div>
+  </div>
+
+  <div class="card" data-scope="existing">
+    <h2>核心頁面內部連結優化</h2>
+    <p class="note">依頁面主題標籤重疊程度，建議可能適合互相連結的核心頁面組合；沒有適合關聯的頁面則不會為了湊數而建議。</p>
+    <div id="linkList"></div>
+  </div>
+
+  <div class="section-heading">技術與可信度</div>
+
+  <div class="card" data-scope="both">
+    <h2>AI／搜尋引擎可讀性技術檢核 <span class="quota-badge">上線前／上線後各一次</span></h2>
+    <p class="note">由操作人員逐頁填寫檢查結果（index／noindex、canonical、頁面可正常存取、Schema 是否已套用）——這是人工檢核紀錄表，工具本身不會連線網站自動偵測。上線前、上線後的結果分開記錄，不會互相覆蓋。</p>
+    <div id="techList"></div>
+    <div style="margin-top:var(--space-md);">
+      <p class="note" style="margin-top:0;">下方分別產出兩份草稿：llms.txt（給生成式 AI 讀的網站摘要，Markdown 格式）跟 robots／AI 爬蟲允許清單建議（哪些爬蟲可以／不可以存取）。兩者用途不同，請分開部署到網站根目錄，且都需人工確認內容正確後再交由網站人員上線。</p>
+      <button class="btn btn-ghost" onclick="generateLlmsTxt()">產出 llms.txt 草稿</button>
+      <div class="copy-box" style="margin-top:8px;">
+        <textarea id="llmsTxtOutput" rows="8" readonly placeholder="按上方按鈕產出草稿"></textarea>
+        <button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('llmsTxtOutput')">複製</button>
+      </div>
+      <button class="btn btn-ghost" style="margin-top:8px;" onclick="generateRobotsDraft()">產出 robots／AI 爬蟲允許清單建議</button>
+      <div class="copy-box" style="margin-top:8px;">
+        <textarea id="robotsOutput" rows="8" readonly placeholder="按上方按鈕產出草稿"></textarea>
+        <button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('robotsOutput')">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-scope="newsite">
+    <h2>網站語意結構建議</h2>
+    <p class="note">依頁面類型提供建議的標題階層骨架（H1/H2），供設計文案前參考；下方可依個別頁面補充實際段落安排備註。</p>
+    <div id="semanticList"></div>
+  </div>
+
+  <div class="card" data-scope="newsite">
+    <h2>Entity 一致性建置</h2>
+    <p class="note">記錄品牌名稱在各處（頁面、第三方平台、社群等）的實際寫法，比對是否與正式品牌名稱一致。</p>
+    <div class="field-row3">
+      <div class="field"><label>出現位置／來源說明</label><input type="text" id="entitySource" placeholder="例如：官網頁尾、Google 商家檔案"></div>
+      <div class="field"><label>實際寫法</label><input type="text" id="entityWrittenAs"></div>
+      <div class="field" style="display:flex; align-items:flex-end;"><button class="btn btn-cta" onclick="addEntity()">新增紀錄</button></div>
+    </div>
+    <div id="entityList"></div>
+  </div>
+
+  <div class="card" data-scope="newsite">
+    <h2>權威來源佈局建議</h2>
+    <p class="note">檢查重點頁面目前是否已有外部佐證（產業報告、官方數據、第三方評測），沒有的話給出建議放置方向。</p>
+    <div id="authorityList"></div>
+  </div>
+
+  <div class="card" data-scope="newsite">
+    <h2>內容可信度標記補強</h2>
+    <p class="note">檢查重點頁面是否已標示作者、最後更新日、資料來源三項可信度標記。</p>
+    <div id="credibilityList"></div>
+  </div>
+
+  <div class="section-heading">AI 驗證（選用）</div>
+
+  <div class="card">
+    <h2>AI 內容驗證 <span class="hint">選用步驟，非報價項目</span></h2>
+    <p class="note">上面所有模組產出的都是規則式帶出的候選內容，沒有經過 AI 即時檢查過。如果想在產出報告前，讓 AI 幫忙檢查有沒有錯誤、矛盾或可以改進的地方，可以用下面流程：產生 Prompt →複製並開啟 AI → 把 AI 的回覆貼回來 → 儲存。儲存後的 AI 意見會以「AI 驗證意見」附錄的形式，跟規則式產出的內容分開列在最下面的健檢報告裡，不會被拿去覆蓋或假冒成規則式建議，最終是否採用仍需人工判斷。</p>
+    <button class="btn btn-ghost" onclick="generateVerificationPrompt()">產生驗證用 Prompt</button>
+    <div class="copy-box" style="margin-top:8px;">
+      <textarea id="aiVerifyPrompt" rows="8" placeholder="按上方按鈕產出，也可以自行編輯後再複製"></textarea>
+      <button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('aiVerifyPrompt')">複製</button>
+    </div>
+    <div class="field-row" style="margin-top:8px;">
+      <div class="field"><label>選擇要開啟的 AI</label>
+        <select id="aiPlatformSelect">
+          <option value="chatgpt">ChatGPT</option>
+          <option value="gemini">Gemini</option>
+          <option value="perplexity">Perplexity</option>
+          <option value="claude">Claude</option>
+        </select>
+      </div>
+      <div class="field" style="display:flex;align-items:flex-end;"><button class="btn btn-cta" onclick="copyPromptAndOpenAi()">複製 Prompt 並開啟 AI</button></div>
+    </div>
+    <div class="field" style="margin-top:8px;">
+      <label>把 AI 的回覆貼在這裡</label>
+      <textarea id="aiVerifyReply" rows="6" placeholder="從 AI 那邊複製完整回覆貼上來"></textarea>
+    </div>
+    <button class="btn btn-cta" onclick="saveAiVerification()">儲存這次的驗證意見</button>
+    <div style="margin-top:var(--space-md);" id="aiVerifySavedBox"></div>
+  </div>
+
+  <div class="section-heading">產出</div>
+
+  <div class="card">
+    <h2>產出健檢報告</h2>
+    <p class="note">把目前模式下所有模組的填寫結果整理成一份可下載的報告文件（HTML，可直接用瀏覽器開啟或列印成 PDF）；各模組上方也都有可直接複製的內容，不一定要等報告產出。</p>
+    <button class="btn btn-cta" onclick="exportReport()">產出並下載報告</button>
+  </div>
+
+  <div class="section-heading">操作說明</div>
+  <div class="card">
+    <details class="help">
+      <summary>怎麼用這個工具</summary>
+      <ol>
+        <li>先選擇模式（既有網站優化／新站架設階段）——會影響頁數上限提醒跟顯示哪些模組。</li>
+        <li>填寫品牌基本資料，再到頁面清單表格裡填多個頁面（可以先「＋新增一列」多開幾列，一次填完再按「儲存頁面清單」，不用一列列分開存）。頁面清單是所有模組的底稿，務必先建立。</li>
+        <li>在頁面清單勾選「列為重點頁面」——核心頁面文案健檢、內部連結、權威來源、可信度標記都是以重點頁面為對象。</li>
+        <li>各模組產出的建議都是「規則式帶出候選內容」，需要人工確認、微調後才算完成，工具本身不會自動把內容送上網站。</li>
+        <li>此工具只做「設計／規劃／檢核」的產出，不含上線後的長期 AI 能見度追蹤；追蹤請切換到既有的「網站追蹤」工具。</li>
+        <li>如果想讓 AI 幫忙檢查內容，可以用「AI 內容驗證」區塊：產生 Prompt、複製並開啟 AI、把回覆貼回來儲存，這份意見會另外列在報告最後，跟規則式產出分開，方便你自己判斷要不要採用。</li>
+        <li>完成後可以用「產出健檢報告」把目前模式的所有結果（含 AI 驗證意見，如果有存的話）整理成一份文件下載。</li>
+        <li>此工具的資料只存在目前瀏覽器分頁裡，關閉分頁就會清空；如果要重新開始，也可以按最上面的「清除目前所有資料」。</li>
+      </ol>
+    </details>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ 常數設定 ============
+const PAGE_TYPES = [
+  { value: "home", label: "首頁" },
+  { value: "product", label: "產品頁" },
+  { value: "service", label: "服務頁" },
+  { value: "article", label: "文章／部落格" },
+  { value: "about", label: "關於我們" },
+  { value: "contact", label: "聯絡我們" },
+  { value: "faq", label: "FAQ 頁" },
+  { value: "other", label: "其他" },
+];
+const PAGE_TYPE_LABEL = {};
+PAGE_TYPES.forEach(t => { PAGE_TYPE_LABEL[t.value] = t.label; });
+
+const SCHEMA_SUGGEST = {
+  home: "Organization", product: "Product", service: "Service", article: "Article",
+  about: "Organization", contact: "Organization", faq: "FAQPage", other: "WebPage",
+};
+
+const MODE_LABELS = { existing: "既有網站優化", newsite: "新站架設階段" };
+const MODE_NOTE = {
+  existing: "對應報價「GEO／AI 搜尋基礎優化」：Schema 至多23頁、核心頁面文案健檢與內部連結至多8頁、FAQ至多5頁／20組。",
+  newsite: "對應報價「AI 可讀性架構健檢」：網站架設階段服務，至多23頁（繁中），FAQ視頁面性質至多每頁5組，多語系另計。",
+};
+const MODE_QUOTA = {
+  existing: { pages: 23, corePages: 8, faqPages: 5, faqTotal: 20, faqPerPage: null },
+  newsite: { pages: 23, corePages: null, faqPages: null, faqTotal: null, faqPerPage: 5 },
+};
+
+const SEMANTIC_SKELETON = {
+  home: ["H1：品牌／核心價值主張", "H2：主要產品／服務總覽", "H2：為什麼選擇我們（差異化）", "H2：客戶／案例／實績", "H2：常見問題", "H2：立即行動（CTA）"],
+  product: ["H1：產品名稱＋核心賣點", "H2：產品特色／規格", "H2：適用對象／使用情境", "H2：與其他方案的差異", "H2：常見問題", "H2：立即詢問／購買"],
+  service: ["H1：服務名稱＋核心價值", "H2：服務內容／流程", "H2：適用對象", "H2：常見問題", "H2：立即諮詢"],
+  article: ["H1：文章主題", "H2：背景／問題說明", "H2：具體做法／數據", "H2：專家或案例佐證", "H2：結論／延伸閱讀"],
+  about: ["H1：品牌介紹", "H2：品牌故事／定位", "H2：團隊／實績", "H2：聯絡方式"],
+  contact: ["H1：聯絡我們", "H2：聯絡方式", "H2：地址／營業時間"],
+  faq: ["H1：常見問題", "H2：分類問題與解答"],
+  other: ["H1：頁面主標題", "H2：內容分段建議"],
+};
+
+const COPY_CHECK_FIELDS = [
+  { key: "positioning", label: "品牌／企業定位是否清楚" },
+  { key: "product", label: "產品／服務內容是否清楚" },
+  { key: "features", label: "特色是否清楚" },
+  { key: "audience", label: "適用對象是否清楚" },
+  { key: "scenario", label: "應用情境是否清楚" },
+  { key: "needs", label: "可解決之需求是否清楚" },
+];
+const COPY_CHECK_STATUS = { ok: "符合", partial: "部分符合", no: "不符合", na: "不適用" };
+
+// 三態核取共用：unchecked／yes／no，避免「未檢查」和「已確認不符合」被當成同一種狀態
+const TRI_LABEL = { unchecked: "尚未檢查", yes: "是", no: "否" };
+function triStateSelect(onchangeExpr, value) {
+  const v = value || "unchecked";
+  return `<select onchange="${onchangeExpr}">
+    <option value="unchecked" ${v === "unchecked" ? "selected" : ""}>尚未檢查</option>
+    <option value="yes" ${v === "yes" ? "selected" : ""}>是</option>
+    <option value="no" ${v === "no" ? "selected" : ""}>否</option>
+  </select>`;
+}
+const COPY_CHECK_SUGGEST = {
+  positioning: "建議補充品牌／企業的定位說明，讓讀者一眼看懂「你是誰、做什麼」。",
+  product: "建議把產品／服務內容講得更具體，避免只有抽象形容詞。",
+  features: "建議補充具體特色／差異化重點，而不是條列空泛的優點。",
+  audience: "建議明確寫出適合的對象（產業、規模、角色），避免「所有人都適合」這種說法。",
+  scenario: "建議補充實際應用情境或使用情境的描述，幫助讀者代入。",
+  needs: "建議明確說明能解決讀者的什麼問題／需求。",
+};
+
+const FAQ_TEMPLATES = [
+  t => `${t}的費用／收費方式是怎麼計算的？`,
+  t => `${t}適合哪些人或哪種情況使用？`,
+  t => `${t}跟市面上其他方案有什麼不同？`,
+  t => `導入／使用${t}前需要準備什麼條件？`,
+  t => `${t}大概需要多久時間才會看到效果／完成？`,
+  t => `${t}的服務／使用流程是什麼？`,
+];
+
+// ============ 狀態 ============
+let mode = "existing";
+let brand = { name: "", officialDomain: "", industry: "", products: "", audience: "" };
+let pages = [];
+let schemaByPage = {};
+let copyCheckByPage = {};
+let faqItems = [];
+let linkItems = [];
+let techByPage = {};
+let entityItems = [];
+let authorityByPage = {};
+let credibilityByPage = {};
+let semanticByPage = {};
+let aiVerificationByMode = { existing: "", newsite: "" };
+let pagesDraft = []; // 頁面清單表格的「工作稿」：包含已存的頁面＋還沒儲存的空白列，只有按「儲存頁面清單」才會真正寫入 pages
+
+let ready = false;
+
+// ============ 基礎工具 ============
+
+function showToast(msg, isError) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.toggle("error", !!isError);
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2600);
+}
+function escapeHtml(s) { return (s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function uid(prefix) { return prefix + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8); }
+function todayLocalISODate() {
+  const d = new Date();
+  const tzOffsetMs = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tzOffsetMs).toISOString().slice(0, 10);
+}
+function splitTopics(s) { return (s || "").split(",").map(x => x.trim()).filter(Boolean); }
+function normName(s) { return (s || "").trim().toLowerCase().replace(/\s+/g, ""); }
+
+// ---- 儲存層：改用瀏覽器原生 sessionStorage ----
+// 這個工具設計上是「單次使用、用完即丟」的輸入工具（跟長期追蹤工具不同），
+// 之後會給不同同仁各自使用、也可能部署到 GitHub/Vercel 這類純前端靜態環境，
+// 所以不能依賴只有特定執行環境才有的 window.storage host API：
+// 1) sessionStorage 是瀏覽器原生功能，部署到任何靜態網站都能直接運作，不需要額外後端。
+// 2) sessionStorage 的資料只存在「這個瀏覽器分頁」，關閉分頁／瀏覽器就清空——
+//    不會有上一個使用者的品牌資料、頁面清單殘留給下一個使用者看到，也不需要伺服器來區隔不同人。
+// 3) 讀寫都是同步的，不用再排隊等非同步寫入完成才更新畫面，也就不會有「存檔還沒回來、畫面卻已經按了下一步」的問題
+//    （這正是先前「新站架設階段分頁切不過去」那個問題的根本原因：舊寫法一定要等 window.storage.set() 的 Promise
+//    resolve 之後才會真的切換畫面，只要存檔那一步整個失敗或环境沒有提供 window.storage，畫面就完全沒反應）。
+function persist(key, computeNext, applyFn) {
+  const value = computeNext();
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    // 例如無痕模式或瀏覽器儲存空間被鎖：存不進去也讓畫面照常更新，只是提醒使用者這筆资料可能不會留到下一次重新整理
+    showToast("此筆資料未能保存在瀏覽器（可能是無痕模式或儲存空間限制），畫面仍會更新但重新整理後可能消失", true);
+  }
+  applyFn(value);
+}
+
+function loadJSON(key, fallback, seedIfMissing) {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (raw === null) throw new Error("not found");
+    return JSON.parse(raw);
+  } catch (e) {
+    if (seedIfMissing) { try { sessionStorage.setItem(key, JSON.stringify(fallback)); } catch (e2) {} }
+    return fallback;
+  }
+}
+
+function clearAllData() {
+  if (!confirm("確定要清除目前這個分頁裡填寫的所有資料嗎？此動作無法復原。")) return;
+  Object.keys(sessionStorage).filter(k => k.startsWith("geodesign:v1:")).forEach(k => sessionStorage.removeItem(k));
+  location.reload();
+}
+
+function copyTextarea(id) {
+  const el = document.getElementById(id);
+  el.select();
+  try {
+    navigator.clipboard.writeText(el.value).then(() => showToast("已複製")).catch(() => showToast("複製失敗，請手動選取複製", true));
+  } catch (e) { showToast("複製失敗，請手動選取複製", true); }
+}
+
+function corePages() { return pages.filter(p => p.isCore); }
+function pageById(id) { return pages.find(p => p.id === id); }
+
+// ============ 初始化 ============
+
+function init() {
+  mode = loadJSON("geodesign:v1:mode", "existing", true);
+  brand = loadJSON("geodesign:v1:brand", brand, true);
+  pages = loadJSON("geodesign:v1:pages", [], true);
+  schemaByPage = loadJSON("geodesign:v1:schema", {}, true);
+  copyCheckByPage = loadJSON("geodesign:v1:copychecks", {}, true);
+  faqItems = loadJSON("geodesign:v1:faq", [], true);
+  linkItems = loadJSON("geodesign:v1:links", [], true);
+  techByPage = loadJSON("geodesign:v1:tech", {}, true);
+  entityItems = loadJSON("geodesign:v1:entity", [], true);
+  authorityByPage = loadJSON("geodesign:v1:authority", {}, true);
+  credibilityByPage = loadJSON("geodesign:v1:credibility", {}, true);
+  semanticByPage = loadJSON("geodesign:v1:semantic", {}, true);
+  aiVerificationByMode = loadJSON("geodesign:v1:aiverify", { existing: "", newsite: "" }, true);
+
+  populateBrandForm();
+  rebuildPagesDraftFromSaved();
+  ready = true;
+  applyMode(true);
+
+  document.getElementById("linkList").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-link-id]");
+    if (!btn) return;
+    setLinkStatus(btn.getAttribute("data-link-id"), btn.getAttribute("data-link-action"));
+  });
+}
+
+function populateBrandForm() {
+  document.getElementById("brandName").value = brand.name || "";
+  document.getElementById("brandDomain").value = brand.officialDomain || "";
+  document.getElementById("brandIndustry").value = brand.industry || "";
+  document.getElementById("brandProducts").value = brand.products || "";
+  document.getElementById("brandAudience").value = brand.audience || "";
+}
+
+async function saveBrand() {
+  await persist("geodesign:v1:brand", () => ({
+    name: document.getElementById("brandName").value.trim(),
+    officialDomain: document.getElementById("brandDomain").value.trim(),
+    industry: document.getElementById("brandIndustry").value.trim(),
+    products: document.getElementById("brandProducts").value.trim(),
+    audience: document.getElementById("brandAudience").value.trim(),
+  }), v => { brand = v; renderAll(); showToast("已儲存品牌資料"); });
+}
+
+// ============ 模式切換 ============
+
+function setMode(m) {
+  if (!["existing", "newsite"].includes(m)) return;
+  persist("geodesign:v1:mode", () => m, v => { mode = v; applyMode(false); });
+}
+
+function applyMode(skipToast) {
+  document.getElementById("modeBtnExisting").classList.toggle("active", mode === "existing");
+  document.getElementById("modeBtnNewsite").classList.toggle("active", mode === "newsite");
+  document.getElementById("modeNote").textContent = MODE_NOTE[mode];
+  document.querySelectorAll(".card[data-scope]").forEach(card => {
+    const scope = card.getAttribute("data-scope");
+    card.style.display = (scope === "both" || scope === mode) ? "block" : "none";
+  });
+  renderAll();
+}
+
+function renderAll() {
+  if (!ready) return;
+  renderPages();
+  renderSchema();
+  renderCopyChecks();
+  renderFaq();
+  renderLinks();
+  renderTech();
+  renderSemantic();
+  renderEntity();
+  renderAuthority();
+  renderCredibility();
+  renderAiVerification();
+}
+
+// ============ 頁面清單（表格式：一次填多列，按一次「儲存頁面清單」）============
+
+const BLANK_PAGE_ROWS_INITIAL = 3;
+
+function newDraftRow() {
+  return { key: uid("row"), id: null, title: "", url: "", type: "other", topics: "", language: "zh-TW", isCore: false, notes: "" };
+}
+
+// 用目前已儲存的 pages 重建工作稿：每個已存頁面對應一列（key 用頁面 id，方便原地編輯），後面補幾列空白列可以直接填新頁面
+function rebuildPagesDraftFromSaved() {
+  pagesDraft = pages.map(p => ({ key: p.id, id: p.id, title: p.title || "", url: p.url || "", type: p.type || "other", topics: p.topics || "", language: p.language || "zh-TW", isCore: !!p.isCore, notes: p.notes || "" }));
+  for (let i = 0; i < BLANK_PAGE_ROWS_INITIAL; i++) pagesDraft.push(newDraftRow());
+}
+
+function addBlankPageRow() {
+  pagesDraft.push(newDraftRow());
+  renderPagesEditTable();
+}
+
+// 每個欄位輸入只更新記憶體中的工作稿，不會馬上存檔、也不會整張表重繪，避免打字打到一半游標跳掉
+function updateDraftCell(key, field, value) {
+  const row = pagesDraft.find(r => r.key === key);
+  if (!row) return;
+  row[field] = value;
+}
+
+function removeDraftRow(key) {
+  const row = pagesDraft.find(r => r.key === key);
+  if (!row) return;
+  if (row.id) {
+    deletePage(row.id); // 已存過的頁面：刪除立即生效（含級聯清除），deletePage() 內部會重建工作稿並重繪
+  } else {
+    pagesDraft = pagesDraft.filter(r => r.key !== key);
+    renderPagesEditTable();
+  }
+}
+
+// 級聯清除以這個頁面為對象的其他模組資料，避免留下孤兒資料（刪除頁面、或存檔時發現頁面被移除，都要走這裡）
+function cascadeCleanupForPageId(id) {
+  const cleanups = [
+    ["geodesign:v1:schema", () => { const c = Object.assign({}, schemaByPage); delete c[id]; return c; }, r => schemaByPage = r],
+    ["geodesign:v1:copychecks", () => { const c = Object.assign({}, copyCheckByPage); delete c[id]; return c; }, r => copyCheckByPage = r],
+    ["geodesign:v1:faq", () => faqItems.filter(f => f.pageId !== id), r => faqItems = r],
+    ["geodesign:v1:links", () => linkItems.filter(l => l.pageA !== id && l.pageB !== id), r => linkItems = r],
+    ["geodesign:v1:tech", () => { const c = Object.assign({}, techByPage); delete c[id]; return c; }, r => techByPage = r],
+    ["geodesign:v1:authority", () => { const c = Object.assign({}, authorityByPage); delete c[id]; return c; }, r => authorityByPage = r],
+    ["geodesign:v1:credibility", () => { const c = Object.assign({}, credibilityByPage); delete c[id]; return c; }, r => credibilityByPage = r],
+    ["geodesign:v1:semantic", () => { const c = Object.assign({}, semanticByPage); delete c[id]; return c; }, r => semanticByPage = r],
+  ];
+  cleanups.forEach(([key, computeNext, applyFn]) => persist(key, computeNext, applyFn));
+}
+
+function deletePage(id) {
+  persist("geodesign:v1:pages", () => pages.filter(p => p.id !== id), v => {
+    pages = v;
+    cascadeCleanupForPageId(id);
+    // 只移除這一列被刪除的頁面，保留工作稿裡其他列（含還沒按儲存的編輯內容），不整個重建
+    pagesDraft = pagesDraft.filter(r => r.id !== id);
+    renderAll();
+    showToast("已刪除頁面（相關 Schema／FAQ／連結／檢核紀錄也一併移除）");
+  });
+}
+
+// 一次把表格裡目前所有「已填標題」的列存成 pages（取代整個陣列），空白列會被忽略、不用另外清
+function savePagesTable() {
+  const filled = pagesDraft.filter(r => r.title.trim());
+  if (!filled.length) { showToast("表格裡還沒有任何已填寫標題的頁面", true); return; }
+  const nextPages = filled.map(r => ({
+    id: r.id || uid("page"),
+    title: r.title.trim(),
+    url: r.url.trim(),
+    type: r.type,
+    topics: r.topics.trim(),
+    language: r.language.trim() || "zh-TW",
+    isCore: !!r.isCore,
+    notes: r.notes.trim(),
+  }));
+  const nextIds = new Set(nextPages.map(p => p.id));
+  // 既有頁面如果被清空標題再存檔，等同被移除：要走跟刪除一樣的級聯清理，不能悄悄留下孤兒資料
+  const removedIds = pages.filter(p => !nextIds.has(p.id)).map(p => p.id);
+  persist("geodesign:v1:pages", () => nextPages, v => {
+    pages = v;
+    removedIds.forEach(id => cascadeCleanupForPageId(id));
+    rebuildPagesDraftFromSaved();
+    renderAll();
+    showToast(`已儲存 ${filled.length} 個頁面` + (removedIds.length ? `；另有 ${removedIds.length} 個頁面因標題被清空而移除（含相關紀錄）` : ""));
+  });
+}
+
+function renderPagesEditTable() {
+  const tbody = document.getElementById("pagesEditBody");
+  tbody.innerHTML = pagesDraft.map(r => `<tr data-row-key="${r.key}">
+    <td><input type="text" value="${escapeHtml(r.title)}" oninput="updateDraftCell('${r.key}','title',this.value)" placeholder="頁面標題"></td>
+    <td><input type="text" value="${escapeHtml(r.url)}" oninput="updateDraftCell('${r.key}','url',this.value)" placeholder="/products/xxx"></td>
+    <td><select onchange="updateDraftCell('${r.key}','type',this.value)">
+      ${PAGE_TYPES.map(t => `<option value="${t.value}" ${t.value === r.type ? "selected" : ""}>${t.label}</option>`).join("")}
+    </select></td>
+    <td><input type="text" value="${escapeHtml(r.topics)}" oninput="updateDraftCell('${r.key}','topics',this.value)" placeholder="逗號分隔"></td>
+    <td><input type="text" value="${escapeHtml(r.language)}" oninput="updateDraftCell('${r.key}','language',this.value)"></td>
+    <td style="text-align:center;"><input type="checkbox" ${r.isCore ? "checked" : ""} onchange="updateDraftCell('${r.key}','isCore',this.checked)"></td>
+    <td><input type="text" value="${escapeHtml(r.notes)}" oninput="updateDraftCell('${r.key}','notes',this.value)"></td>
+    <td><button class="btn btn-danger btn-sm" onclick="removeDraftRow('${r.key}')">刪除</button></td>
+  </tr>`).join("");
+}
+
+function renderPages() {
+  const quota = MODE_QUOTA[mode];
+  document.getElementById("pageQuotaHint").textContent = `目前已儲存 ${pages.length} 頁／方案內含 ${quota.pages} 頁`;
+  const warnEl = document.getElementById("pageQuotaWarn");
+  const langEl = document.getElementById("languageQuotaNote");
+  let warnHtml = "";
+  let langHtml = "";
+
+  if (mode === "newsite") {
+    // 依語言各自獨立比對 23 頁上限：繁中頁數自己跟 23 比、其他語言各自的頁數也各自跟 23 比，
+    // 不要把不同語言的頁面加總在一起跟 23 比——那樣會把「總頁數超過」跟「單一外語超過」混在一起重複警示／重複計價
+    const langCounts = {};
+    pages.forEach(p => { const lang = (p.language || "zh-TW").trim() || "zh-TW"; langCounts[lang] = (langCounts[lang] || 0) + 1; });
+    Object.keys(langCounts).sort().forEach(lang => {
+      const count = langCounts[lang];
+      const overCount = Math.max(0, count - quota.pages);
+      if (lang === "zh-TW") {
+        if (overCount) langHtml += `<div class="quota-warn">繁中頁面共 ${count} 頁，已超過方案內含 ${quota.pages} 頁，超出 ${overCount} 頁可依實際需求加購（$5,000／頁）。</div>`;
+      } else {
+        langHtml += `<div class="quota-warn">偵測到「${escapeHtml(lang)}」語言版本頁面共 ${count} 頁：多語系為加購項目，需另收 $15,000／語系（含23頁）${overCount ? `，超出的 ${overCount} 頁再依 $5,000／頁加購` : ""}。</div>`;
+      }
+    });
+  } else {
+    if (pages.length > quota.pages) {
+      warnHtml += `<div class="quota-warn">已超過 ${MODE_LABELS[mode]} 模式方案內含頁數（${quota.pages} 頁），超出部分需另行報價，不是工具擋你新增。</div>`;
+    }
+    if (quota.corePages && corePages().length > quota.corePages) {
+      warnHtml += `<div class="quota-warn">重點頁面已超過 ${quota.corePages} 頁上限（目前 ${corePages().length} 頁），超出部分需另行報價。</div>`;
+    }
+  }
+  warnEl.innerHTML = warnHtml;
+  langEl.innerHTML = langHtml;
+
+  renderPagesEditTable();
+}
+
+// ============ Schema 規劃 ============
+// getEffectiveSchema() 是畫面／AI驗證Prompt／匯出報告三處共用的唯一資料來源，
+// 避免「畫面上看得到建議值，但沒手動點過下拉選單或文字框，報告卻是空的」這種落差。
+
+function buildDefaultJsonLd(page, schemaType) {
+  const base = { "@context": "https://schema.org", "@type": schemaType };
+  if (schemaType === "Organization") {
+    base.name = brand.name || "";
+    base.url = brand.officialDomain ? "https://" + brand.officialDomain : "";
+  } else if (schemaType === "Product" || schemaType === "Service") {
+    base.name = page.title || "";
+    base.provider = { "@type": "Organization", name: brand.name || "" };
+  } else if (schemaType === "Article") {
+    base.headline = page.title || "";
+    base.author = { "@type": "Person", name: "" };
+    base.datePublished = "";
+  } else if (schemaType === "FAQPage") {
+    base.mainEntity = [];
+  } else {
+    base.name = page.title || "";
+  }
+  return JSON.stringify(base, null, 2);
+}
+
+function getEffectiveSchema(page) {
+  const rec = schemaByPage[page.id];
+  if (rec) return rec;
+  const schemaType = SCHEMA_SUGGEST[page.type] || "WebPage";
+  return { schemaType, jsonld: buildDefaultJsonLd(page, schemaType), status: "not_started", customized: false };
+}
+
+// 把畫面上看得到、但使用者還沒手動碰過（沒存進 schemaByPage）的預設建議，一次補寫進儲存資料，
+// 這樣「產出報告」讀 schemaByPage 時才不會是空的
+function ensureSchemaDefaults() {
+  const missing = pages.filter(p => !schemaByPage[p.id]);
+  if (!missing.length) return;
+  persist("geodesign:v1:schema", () => {
+    const next = Object.assign({}, schemaByPage);
+    missing.forEach(p => { next[p.id] = getEffectiveSchema(p); });
+    return next;
+  }, v => { schemaByPage = v; });
+}
+
+function renderSchema() {
+  ensureSchemaDefaults();
+  const warnEl = document.getElementById("schemaQuotaWarn");
+  const quota = MODE_QUOTA[mode];
+  warnEl.innerHTML = pages.length > quota.pages ? `<div class="quota-warn">頁面數已超過 ${quota.pages} 頁上限。</div>` : "";
+  const el = document.getElementById("schemaList");
+  if (!pages.length) { el.innerHTML = '<div class="empty">請先在上方建立頁面清單</div>'; return; }
+  el.innerHTML = pages.map(p => {
+    const rec = getEffectiveSchema(p);
+    let parsedType = null;
+    let jsonInvalid = false;
+    try { parsedType = JSON.parse(rec.jsonld)["@type"]; } catch (e) { jsonInvalid = true; }
+    const mismatch = !jsonInvalid && parsedType && parsedType !== rec.schemaType;
+    return `<div class="item-card">
+      <div class="row">
+        <div class="title">${escapeHtml(p.title)}</div>
+        <div>
+          <select onchange="updateSchemaField('${p.id}','schemaType',this.value)">
+            ${["Organization", "Product", "Service", "Article", "FAQPage", "HowTo", "Person", "WebPage"].map(t => `<option value="${t}" ${t === rec.schemaType ? "selected" : ""}>${t}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      ${jsonInvalid ? '<div class="quota-warn">目前 JSON-LD 內容不是合法的 JSON 格式，請檢查語法（例如缺逗號、括號沒對齊）。</div>' : ''}
+      ${mismatch ? `<div class="quota-warn">目前 JSON 內的 @type 是「${escapeHtml(parsedType)}」，跟上面選的類型「${escapeHtml(rec.schemaType)}」不一致。<button class="btn btn-ghost btn-sm" onclick="regenerateSchemaJsonld('${p.id}')">重新產生此類型模板</button>（會覆蓋目前內容，請先確認沒有想保留的手動修改）</div>` : ''}
+      <div class="copy-box" style="margin-top:6px;">
+        <textarea rows="6" id="schemaJsonld-${p.id}" onchange="updateSchemaField('${p.id}','jsonld',this.value)">${escapeHtml(rec.jsonld)}</textarea>
+        <button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('schemaJsonld-${p.id}')">複製</button>
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <label style="margin:0;">狀態：</label>
+        <select onchange="updateSchemaField('${p.id}','status',this.value)">
+          <option value="not_started" ${rec.status === "not_started" ? "selected" : ""}>未開始</option>
+          <option value="draft" ${rec.status === "draft" ? "selected" : ""}>草稿完成</option>
+          <option value="applied" ${rec.status === "applied" ? "selected" : ""}>操作人員標記為已套用</option>
+        </select>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function regenerateSchemaJsonld(pageId) {
+  const p = pageById(pageId);
+  if (!p) return;
+  persist("geodesign:v1:schema", () => {
+    const c = Object.assign({}, schemaByPage);
+    const rec = Object.assign({}, getEffectiveSchema(p));
+    rec.jsonld = buildDefaultJsonLd(p, rec.schemaType);
+    rec.customized = false;
+    c[pageId] = rec;
+    return c;
+  }, v => { schemaByPage = v; renderSchema(); showToast("已重新產生模板"); });
+}
+
+function updateSchemaField(pageId, field, value) {
+  const p = pageById(pageId);
+  persist("geodesign:v1:schema", () => {
+    const c = Object.assign({}, schemaByPage);
+    const rec = Object.assign({}, getEffectiveSchema(p || {}), c[pageId]);
+    rec[field] = value;
+    if (field === "schemaType" && !rec.customized) {
+      // 使用者還沒手動改過 JSON 內容，換類型時直接同步重新產生模板，避免選單跟 JSON 兜不起來
+      rec.jsonld = buildDefaultJsonLd(p || {}, value);
+    }
+    if (field === "jsonld") rec.customized = true;
+    c[pageId] = rec;
+    return c;
+  }, v => { schemaByPage = v; renderSchema(); });
+}
+
+// ============ 核心頁面文案健檢 ============
+
+function renderCopyChecks() {
+  const el = document.getElementById("copyCheckList");
+  const warnEl = document.getElementById("copyCheckQuotaWarn");
+  const cps = corePages();
+  const quota = MODE_QUOTA[mode];
+  warnEl.innerHTML = (quota.corePages && cps.length > quota.corePages)
+    ? `<div class="quota-warn">重點頁面已超過 ${quota.corePages} 頁上限。</div>` : "";
+  if (!cps.length) { el.innerHTML = '<div class="empty">請先在頁面清單勾選「列為重點頁面」</div>'; return; }
+  el.innerHTML = cps.map(p => {
+    const rec = copyCheckByPage[p.id] || {};
+    const gaps = COPY_CHECK_FIELDS.filter(f => (rec[f.key] || "na") === "no" || rec[f.key] === "partial");
+    return `<div class="item-card">
+      <div class="title">${escapeHtml(p.title)}</div>
+      ${COPY_CHECK_FIELDS.map(f => `<div class="row" style="margin-top:4px;">
+        <label style="margin:0;flex:1;">${f.label}</label>
+        <select style="width:auto;" onchange="updateCopyCheckField('${p.id}','${f.key}',this.value)">
+          ${["ok", "partial", "no", "na"].map(s => `<option value="${s}" ${(rec[f.key] || "na") === s ? "selected" : ""}>${COPY_CHECK_STATUS[s]}</option>`).join("")}
+        </select>
+      </div>`).join("")}
+      <textarea placeholder="補充備註（選填）" style="margin-top:6px;" onchange="updateCopyCheckField('${p.id}','notes',this.value)">${escapeHtml(rec.notes || "")}</textarea>
+      ${gaps.length ? `<div class="copy-box" style="margin-top:6px;"><textarea rows="${gaps.length + 1}" id="copySuggest-${p.id}" readonly>${escapeHtml(gaps.map(g => "· " + f_label(g) + "：" + COPY_CHECK_SUGGEST[g.key]).join("\\n"))}</textarea><button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('copySuggest-${p.id}')">複製建議</button></div>` : '<div class="empty">目前六項皆無缺漏標記</div>'}
+    </div>`;
+  }).join("");
+}
+function f_label(f) { return f.label; }
+
+function updateCopyCheckField(pageId, field, value) {
+  persist("geodesign:v1:copychecks", () => {
+    const c = Object.assign({}, copyCheckByPage);
+    c[pageId] = Object.assign({}, c[pageId], { [field]: value });
+    return c;
+  }, v => { copyCheckByPage = v; renderCopyChecks(); });
+}
+
+// ============ FAQ ============
+
+function faqQuotaState() {
+  const quota = MODE_QUOTA[mode];
+  const adopted = faqItems.filter(f => f.status === "adopted");
+  if (mode === "existing") {
+    const pageIds = new Set(adopted.map(f => f.pageId));
+    return { adoptedCount: adopted.length, pageCount: pageIds.size, overTotal: adopted.length > quota.faqTotal, overPages: pageIds.size > quota.faqPages };
+  }
+  return { adoptedCount: adopted.length, pageCount: new Set(adopted.map(f => f.pageId)).size };
+}
+
+function renderFaq() {
+  const hintEl = document.getElementById("faqQuotaHint");
+  const warnEl = document.getElementById("faqQuotaWarn");
+  const st = faqQuotaState();
+  if (mode === "existing") {
+    hintEl.textContent = `已採用 ${st.adoptedCount} 組／上限 20 組，共 ${st.pageCount} 頁／上限 5 頁`;
+    warnEl.innerHTML = (st.overTotal || st.overPages) ? `<div class="quota-warn">已超過 FAQ 上限（至多5頁／總計20組），超出部分屬加購範圍。</div>` : "";
+  } else {
+    hintEl.textContent = `已採用 ${st.adoptedCount} 組（每頁至多 5 組，視頁面性質）`;
+    warnEl.innerHTML = "";
+  }
+  const el = document.getElementById("faqList");
+  if (!pages.length) { el.innerHTML = '<div class="empty">請先建立頁面清單</div>'; return; }
+  el.innerHTML = pages.map(p => {
+    const items = faqItems.filter(f => f.pageId === p.id);
+    const adoptedCount = items.filter(f => f.status === "adopted").length;
+    const overPerPage = mode === "newsite" && MODE_QUOTA.newsite.faqPerPage && adoptedCount > MODE_QUOTA.newsite.faqPerPage;
+    return `<div class="item-card">
+      <div class="row">
+        <div class="title">${escapeHtml(p.title)} <span class="hint" style="font-size:0.72rem;color:var(--color-muted);">已採用 ${adoptedCount} 組</span></div>
+        <button class="btn btn-ghost btn-sm" onclick="generateFaqCandidates('${p.id}')">產生候選問題</button>
+      </div>
+      ${overPerPage ? '<div class="quota-warn">此頁已超過每頁 5 組上限。</div>' : ''}
+      ${items.length ? items.map(f => `<div class="item-card ${f.status === 'rejected' ? 'rejected' : ''}" style="background:var(--color-surface);">
+        <input type="text" value="${escapeHtml(f.question)}" onchange="updateFaqQuestion('${f.id}',this.value)">
+        <textarea placeholder="答案草稿（選填，人工填寫，非本工具自動產生文案）" style="margin-top:4px;" onchange="updateFaqAnswer('${f.id}',this.value)">${escapeHtml(f.answerDraft || "")}</textarea>
+        <div class="row" style="margin-top:4px;">
+          <span class="tag ${f.status === 'adopted' ? 'tag-yes' : (f.status === 'rejected' ? 'tag-no' : '')}">${f.status === 'adopted' ? '已採用' : (f.status === 'rejected' ? '已刪除' : '候選')}</span>
+          <div>
+            ${f.status !== 'adopted' ? `<button class="btn btn-ghost btn-sm" onclick="setFaqStatus('${f.id}','adopted')">採用</button>` : ''}
+            ${f.status !== 'rejected' ? `<button class="btn btn-danger btn-sm" onclick="setFaqStatus('${f.id}','rejected')">刪除</button>` : `<button class="btn btn-ghost btn-sm" onclick="setFaqStatus('${f.id}','candidate')">還原</button>`}
+          </div>
+        </div>
+      </div>`).join("") : '<div class="empty">尚無候選問題，按上方按鈕產生</div>'}
+    </div>`;
+  }).join("");
+}
+
+function generateFaqCandidates(pageId) {
+  const p = pageById(pageId);
+  if (!p) return;
+  const topics = splitTopics(p.topics);
+  const topic = topics[0] || p.title;
+  const existingQuestions = new Set(faqItems.filter(f => f.pageId === pageId).map(f => f.question));
+  const candidates = FAQ_TEMPLATES.map(fn => fn(topic)).filter(q => !existingQuestions.has(q));
+  if (!candidates.length) { showToast("目前模板已全數產生過，可手動編輯既有題目", true); return; }
+  const newItems = candidates.map(q => ({ id: uid("faq"), pageId, question: q, status: "candidate" }));
+  persist("geodesign:v1:faq", () => faqItems.concat(newItems), v => { faqItems = v; renderFaq(); showToast(`已產生 ${newItems.length} 組候選問題`); });
+}
+
+function setFaqStatus(id, status) {
+  persist("geodesign:v1:faq", () => faqItems.map(f => f.id === id ? Object.assign({}, f, { status }) : f), v => { faqItems = v; renderFaq(); });
+}
+
+function updateFaqQuestion(id, value) {
+  persist("geodesign:v1:faq", () => faqItems.map(f => f.id === id ? Object.assign({}, f, { question: value }) : f), v => { faqItems = v; });
+}
+
+function updateFaqAnswer(id, value) {
+  persist("geodesign:v1:faq", () => faqItems.map(f => f.id === id ? Object.assign({}, f, { answerDraft: value }) : f), v => { faqItems = v; });
+}
+
+// ============ 內部連結優化 ============
+
+let currentLinkSuggestions = [];
+
+function computeLinkSuggestions() {
+  const cps = corePages();
+  const suggestions = [];
+  for (let i = 0; i < cps.length; i++) {
+    for (let j = i + 1; j < cps.length; j++) {
+      const ta = new Set(splitTopics(cps[i].topics).map(t => t.toLowerCase()));
+      const tb = new Set(splitTopics(cps[j].topics).map(t => t.toLowerCase()));
+      const shared = [...ta].filter(t => tb.has(t));
+      if (shared.length) suggestions.push({ pageA: cps[i].id, pageB: cps[j].id, sharedTopics: shared });
+    }
+  }
+  return suggestions;
+}
+
+function renderLinks() {
+  const el = document.getElementById("linkList");
+  const cps = corePages();
+  if (cps.length < 2) { el.innerHTML = '<div class="empty">至少需要 2 個重點頁面且有共同主題標籤，才能產生連結建議</div>'; currentLinkSuggestions = []; return; }
+  const computed = computeLinkSuggestions();
+  // 把既有的 adopt/reject 狀態疊回自動算出的建議上（以 pageA/pageB 配對為 key）
+  computed.forEach(s => {
+    const existing = linkItems.find(l => (l.pageA === s.pageA && l.pageB === s.pageB) || (l.pageA === s.pageB && l.pageB === s.pageA));
+    s.id = existing ? existing.id : uid("link");
+    s.status = existing ? existing.status : "suggested";
+  });
+  currentLinkSuggestions = computed;
+  if (!computed.length) { el.innerHTML = '<div class="empty">目前重點頁面之間沒有共同主題標籤，沒有適合的連結建議（不會為了湊數而建議）</div>'; return; }
+  el.innerHTML = computed.map(s => {
+    const pa = pageById(s.pageA), pb = pageById(s.pageB);
+    if (!pa || !pb) return "";
+    return `<div class="item-card ${s.status === 'rejected' ? 'rejected' : ''}">
+      <div class="title">${escapeHtml(pa.title)} ⇄ ${escapeHtml(pb.title)}</div>
+      <div class="hint" style="font-size:0.78rem;color:var(--color-muted);">共同主題：${s.sharedTopics.map(escapeHtml).join("、")}</div>
+      <div class="row" style="margin-top:6px;">
+        <span class="tag ${s.status === 'adopted' ? 'tag-yes' : (s.status === 'rejected' ? 'tag-no' : '')}">${s.status === 'adopted' ? '已採用' : (s.status === 'rejected' ? '不採用' : '建議')}</span>
+        <div>
+          ${s.status !== 'adopted' ? `<button type="button" class="btn btn-ghost btn-sm" data-link-id="${s.id}" data-link-action="adopted">採用</button>` : ''}
+          ${s.status !== 'rejected' ? `<button type="button" class="btn btn-danger btn-sm" data-link-id="${s.id}" data-link-action="rejected">不採用</button>` : `<button type="button" class="btn btn-ghost btn-sm" data-link-id="${s.id}" data-link-action="suggested">還原</button>`}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function setLinkStatus(id, status) {
+  const s = currentLinkSuggestions.find(x => x.id === id);
+  if (!s) return;
+  persist("geodesign:v1:links", () => {
+    const exists = linkItems.some(l => l.id === id);
+    if (exists) return linkItems.map(l => l.id === id ? Object.assign({}, l, { status }) : l);
+    return linkItems.concat([{ id, pageA: s.pageA, pageB: s.pageB, sharedTopics: s.sharedTopics, status }]);
+  }, v => { linkItems = v; renderLinks(); });
+}
+
+// ============ 技術檢核 + llms.txt ============
+
+function renderTech() {
+  const el = document.getElementById("techList");
+  if (!pages.length) { el.innerHTML = '<div class="empty">請先建立頁面清單</div>'; return; }
+  el.innerHTML = '<table class="entries"><thead><tr><th>頁面</th><th>階段</th><th>Index狀態</th><th>Canonical</th><th>可正常存取</th><th>Schema已套用</th><th>檢查日期</th></tr></thead><tbody>' +
+    pages.map(p => {
+      const rec = techByPage[p.id] || {};
+      return ["pre", "post"].map((stage, idx) => {
+        const s = rec[stage] || {};
+        const indexStatus = s.indexStatus || "unknown";
+        return `<tr${stage === "post" ? ' style="border-top:none;"' : ''}>
+          <td>${idx === 0 ? escapeHtml(p.title) : ''}</td>
+          <td>${stage === "pre" ? "上線前" : "上線後"}</td>
+          <td><select onchange="updateTechField('${p.id}','${stage}','indexStatus',this.value)">
+            <option value="unknown" ${indexStatus === "unknown" ? "selected" : ""}>未檢查</option>
+            <option value="index" ${indexStatus === "index" ? "selected" : ""}>index</option>
+            <option value="noindex" ${indexStatus === "noindex" ? "selected" : ""}>noindex</option>
+          </select></td>
+          <td>${triStateSelect(`updateTechField('${p.id}','${stage}','canonicalOk',this.value)`, s.canonicalOk)}</td>
+          <td>${triStateSelect(`updateTechField('${p.id}','${stage}','accessOk',this.value)`, s.accessOk)}</td>
+          <td>${triStateSelect(`updateTechField('${p.id}','${stage}','schemaApplied',this.value)`, s.schemaApplied)}</td>
+          <td><input type="date" value="${escapeHtml(s.checkedDate || "")}" onchange="updateTechField('${p.id}','${stage}','checkedDate',this.value)"></td>
+        </tr>`;
+      }).join("");
+    }).join("") + '</tbody></table><p class="hint" style="font-size:0.8rem;margin-top:6px;">上線前／上線後為各自獨立的檢查紀錄，切換不會覆蓋另一階段的資料。</p>';
+}
+
+function updateTechField(pageId, stage, field, value) {
+  persist("geodesign:v1:tech", () => {
+    const c = Object.assign({}, techByPage);
+    const pageRec = Object.assign({ pre: {}, post: {} }, c[pageId]);
+    pageRec[stage] = Object.assign({}, pageRec[stage], { [field]: value });
+    c[pageId] = pageRec;
+    return c;
+  }, v => { techByPage = v; });
+}
+
+function generateLlmsTxt() {
+  // llms.txt 是給生成式 AI 讀的 Markdown 格式網站摘要（llmstxt.org 非正式規範），
+  // 不是 robots.txt 的爬蟲存取規則語法，兩者用途不同，故分開產出。
+  const domain = brand.officialDomain ? "https://" + brand.officialDomain.replace(/^https?:\/\//, "") : "https://example.com";
+  const lines = [];
+  lines.push("# " + (brand.name || "（尚未填寫品牌名稱）"));
+  lines.push("");
+  const summaryParts = [];
+  if (brand.industry) summaryParts.push(brand.industry);
+  if (brand.products) summaryParts.push(brand.products);
+  lines.push("> " + (summaryParts.length ? summaryParts.join("，") : "（請先填寫品牌基本資料以產出摘要）") + (brand.audience ? "，主要服務對象：" + brand.audience : ""));
+  lines.push("");
+  lines.push("## 主要頁面");
+  lines.push("");
+  pages.forEach(p => {
+    const url = p.url ? (p.url.startsWith("http") ? p.url : domain.replace(/\/$/, "") + (p.url.startsWith("/") ? p.url : "/" + p.url)) : domain;
+    lines.push("- [" + (p.title || "未命名頁面") + "](" + url + ")" + (p.topics ? "：" + p.topics : ""));
+  });
+  document.getElementById("llmsTxtOutput").value = lines.join("\n");
+  showToast("已產出 llms.txt 草稿（Markdown 格式），請人工確認後再部署到網站根目錄");
+}
+
+function generateRobotsDraft() {
+  // 這裡才是真正的 robots.txt／AI 爬蟲允許清單語法，與上面的 llms.txt 分開產出、分開部署。
+  const lines = [
+    "# robots.txt／AI 爬蟲允許清單建議草稿",
+    "# 產出時間：" + todayLocalISODate(),
+    "# 這是建議草稿，實際 User-agent 名稱與是否允許存取，請與工程／法遵人員確認後再部署",
+    "",
+    "User-agent: *",
+    "Allow: /",
+    "",
+    "# 常見生成式 AI／搜尋爬蟲（是否允許請依公司政策逐一確認，非本工具自動判斷）",
+    "User-agent: GPTBot",
+    "Allow: /",
+    "",
+    "User-agent: ClaudeBot",
+    "Allow: /",
+    "",
+    "User-agent: Google-Extended",
+    "Allow: /",
+    "",
+    "User-agent: PerplexityBot",
+    "Allow: /",
+  ];
+  document.getElementById("robotsOutput").value = lines.join("\n");
+  showToast("已產出 robots／AI 爬蟲允許清單草稿，請人工確認後再部署");
+}
+
+// ============ 網站語意結構建議 ============
+
+function renderSemantic() {
+  const el = document.getElementById("semanticList");
+  const cps = pages;
+  if (!cps.length) { el.innerHTML = '<div class="empty">請先在頁面清單建立頁面</div>'; return; }
+  el.innerHTML = cps.map(p => {
+    const skeleton = SEMANTIC_SKELETON[p.type] || SEMANTIC_SKELETON.other;
+    const rec = semanticByPage[p.id] || {};
+    return `<div class="item-card">
+      <div class="title">${escapeHtml(p.title)}</div>
+      <div class="copy-box" style="margin-top:6px;">
+        <textarea rows="${skeleton.length + 1}" id="semanticSkeleton-${p.id}" readonly>${escapeHtml(skeleton.join("\n"))}</textarea>
+        <button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('semanticSkeleton-${p.id}')">複製骨架</button>
+      </div>
+      <textarea placeholder="實際段落安排備註（選填）" style="margin-top:6px;" onchange="updateSemanticNote('${p.id}',this.value)">${escapeHtml(rec.notes || "")}</textarea>
+    </div>`;
+  }).join("");
+}
+
+function updateSemanticNote(pageId, value) {
+  persist("geodesign:v1:semantic", () => {
+    const c = Object.assign({}, semanticByPage);
+    c[pageId] = Object.assign({}, c[pageId], { notes: value });
+    return c;
+  }, v => { semanticByPage = v; });
+}
+
+// ============ Entity 一致性 ============
+
+function addEntity() {
+  const source = document.getElementById("entitySource").value.trim();
+  const writtenAs = document.getElementById("entityWrittenAs").value.trim();
+  if (!source || !writtenAs) { showToast("請填寫出現位置與實際寫法", true); return; }
+  const item = { id: uid("entity"), source, writtenAs };
+  persist("geodesign:v1:entity", () => entityItems.concat([item]), v => {
+    entityItems = v;
+    document.getElementById("entitySource").value = "";
+    document.getElementById("entityWrittenAs").value = "";
+    renderEntity();
+    showToast("已新增紀錄");
+  });
+}
+
+function deleteEntity(id) {
+  persist("geodesign:v1:entity", () => entityItems.filter(e => e.id !== id), v => { entityItems = v; renderEntity(); });
+}
+
+function renderEntity() {
+  const el = document.getElementById("entityList");
+  if (!entityItems.length) { el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
+  el.innerHTML = '<table class="entries"><thead><tr><th>出現位置</th><th>實際寫法</th><th>是否一致</th><th></th></tr></thead><tbody>' +
+    entityItems.map(e => {
+      const consistent = normName(e.writtenAs) === normName(brand.name);
+      return `<tr>
+        <td>${escapeHtml(e.source)}</td>
+        <td>${escapeHtml(e.writtenAs)}</td>
+        <td>${brand.name ? (consistent ? '<span class="tag tag-yes">一致</span>' : '<span class="tag tag-fail">不一致</span>') : '<span class="tag tag-no">尚未填寫品牌名稱</span>'}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteEntity('${e.id}')">刪除</button></td>
+      </tr>`;
+    }).join("") + '</tbody></table>';
+}
+
+// ============ 權威來源佈局建議 ============
+
+function renderAuthority() {
+  const el = document.getElementById("authorityList");
+  const cps = pages;
+  if (!cps.length) { el.innerHTML = '<div class="empty">請先在頁面清單建立頁面</div>'; return; }
+  el.innerHTML = cps.map(p => {
+    const rec = authorityByPage[p.id] || {};
+    const hasSource = rec.hasSource || "unchecked";
+    return `<div class="item-card">
+      <div class="row">
+        <div class="title">${escapeHtml(p.title)}</div>
+        <label style="margin:0;display:flex;align-items:center;gap:4px;font-size:0.85rem;">已有外部佐證：${triStateSelect(`updateAuthorityField('${p.id}','hasSource',this.value)`, hasSource)}</label>
+      </div>
+      ${hasSource !== "yes" ? '<div class="hint" style="font-size:0.82rem;color:var(--color-muted);margin-top:4px;">建議在提到具體數據／主張處，加入產業報告、官方數據或第三方評測連結佐證。</div>' : ''}
+    </div>`;
+  }).join("");
+}
+
+function updateAuthorityField(pageId, field, value) {
+  persist("geodesign:v1:authority", () => {
+    const c = Object.assign({}, authorityByPage);
+    c[pageId] = Object.assign({}, c[pageId], { [field]: value });
+    return c;
+  }, v => { authorityByPage = v; renderAuthority(); });
+}
+
+// ============ 內容可信度標記 ============
+
+function renderCredibility() {
+  const el = document.getElementById("credibilityList");
+  const cps = pages;
+  if (!cps.length) { el.innerHTML = '<div class="empty">請先在頁面清單建立頁面</div>'; return; }
+  el.innerHTML = cps.map(p => {
+    const rec = credibilityByPage[p.id] || {};
+    const hasAuthor = rec.hasAuthor || "unchecked";
+    const hasDate = rec.hasDate || "unchecked";
+    const hasSourceCite = rec.hasSourceCite || "unchecked";
+    const missing = [];
+    if (hasAuthor === "no") missing.push("作者");
+    if (hasDate === "no") missing.push("最後更新日");
+    if (hasSourceCite === "no") missing.push("資料來源");
+    const unchecked = [hasAuthor, hasDate, hasSourceCite].filter(v => v === "unchecked").length;
+    return `<div class="item-card">
+      <div class="title">${escapeHtml(p.title)}</div>
+      <label style="margin:4px 0 0;display:flex;align-items:center;gap:4px;font-size:0.85rem;">已標示作者：${triStateSelect(`updateCredibilityField('${p.id}','hasAuthor',this.value)`, hasAuthor)}</label>
+      <label style="margin:4px 0 0;display:flex;align-items:center;gap:4px;font-size:0.85rem;">已標示最後更新日：${triStateSelect(`updateCredibilityField('${p.id}','hasDate',this.value)`, hasDate)}</label>
+      <label style="margin:4px 0 0;display:flex;align-items:center;gap:4px;font-size:0.85rem;">已標示資料來源：${triStateSelect(`updateCredibilityField('${p.id}','hasSourceCite',this.value)`, hasSourceCite)}</label>
+      ${missing.length ? `<div class="hint" style="font-size:0.82rem;color:var(--color-danger);margin-top:4px;">已確認缺少：${missing.join("、")}</div>` : (unchecked ? `<div class="hint" style="font-size:0.82rem;color:var(--color-muted);margin-top:4px;">尚有 ${unchecked} 項未檢查</div>` : '<div class="hint" style="font-size:0.82rem;color:var(--color-muted);margin-top:4px;">三項皆已標示</div>')}
+    </div>`;
+  }).join("");
+}
+
+function updateCredibilityField(pageId, field, value) {
+  persist("geodesign:v1:credibility", () => {
+    const c = Object.assign({}, credibilityByPage);
+    c[pageId] = Object.assign({}, c[pageId], { [field]: value });
+    return c;
+  }, v => { credibilityByPage = v; renderCredibility(); });
+}
+
+// ============ AI 內容驗證（選用）============
+// 這裡故意不做「自動解析 AI 回覆、覆蓋規則式欄位」這種事：
+// AI 回覆的格式無法保證、內容也可能有誤，貿然自動套用風險比人工看過再決定要不要採用還高。
+// 所以整個流程停在「複製Prompt、開新分頁、貼回來、存成附錄」，最終報告裡會跟規則式產出清楚分開列，
+// 不會被誤標成規則式建議，也不會被誤標成「非AI」。
+
+const AI_PLATFORM_URLS = {
+  chatgpt: "https://chatgpt.com/",
+  gemini: "https://gemini.google.com/",
+  perplexity: "https://www.perplexity.ai/",
+  claude: "https://claude.ai/new",
+};
+
+function buildVerificationPrompt() {
+  const lines = [];
+  lines.push("你是一位熟悉 GEO（生成式引擎優化）與網站內容策略的顧問，請幫我檢查以下網站設計／內容規劃草稿有沒有明顯錯誤、矛盾或遺漏，並提出具體修改建議（條列回覆即可）。以下是目前的規劃內容：");
+  lines.push("\n【模式】" + MODE_LABELS[mode]);
+  lines.push("【品牌名稱】" + (brand.name || "（未填寫）"));
+  lines.push("【官方網域】" + (brand.officialDomain || "（未填寫）"));
+  lines.push("【產業別】" + (brand.industry || "（未填寫）"));
+
+  lines.push("\n【頁面清單】");
+  pages.forEach(p => lines.push("- " + p.title + "（" + (PAGE_TYPE_LABEL[p.type] || p.type) + (p.isCore ? "，重點頁" : "") + "）主題標籤：" + (p.topics || "無")));
+
+  lines.push("\n【Schema 規劃】");
+  pages.forEach(p => {
+    const r = schemaByPage[p.id];
+    if (r) lines.push("- " + p.title + "：" + r.schemaType + "\n" + (r.jsonld || ""));
+  });
+
+  lines.push("\n【已採用 FAQ】");
+  faqItems.filter(f => f.status === "adopted").forEach(f => {
+    const p = pageById(f.pageId);
+    lines.push("- (" + (p ? p.title : "") + ") " + f.question);
+  });
+
+  if (mode === "existing") {
+    lines.push("\n【核心頁面文案健檢缺口】");
+    corePages().forEach(p => {
+      const rec = copyCheckByPage[p.id] || {};
+      const gaps = COPY_CHECK_FIELDS.filter(f => (rec[f.key] || "na") === "no" || rec[f.key] === "partial");
+      if (gaps.length) lines.push("- " + p.title + "：" + gaps.map(g => g.label).join("、"));
+    });
+    lines.push("\n【內部連結建議（已採用）】");
+    linkItems.filter(l => l.status === "adopted").forEach(l => {
+      const pa = pageById(l.pageA), pb = pageById(l.pageB);
+      lines.push("- " + (pa ? pa.title : "") + " <-> " + (pb ? pb.title : ""));
+    });
+  }
+
+  lines.push("\n【技術可讀性檢核】");
+  pages.forEach(p => {
+    const r = techByPage[p.id];
+    if (!r) return;
+    ["pre", "post"].forEach(stage => {
+      const s = r[stage];
+      if (!s) return;
+      lines.push("- " + p.title + "（" + (stage === "pre" ? "上線前" : "上線後") + "）：index=" + (s.indexStatus || "未檢查") + ", canonical=" + TRI_LABEL[s.canonicalOk || "unchecked"] + ", 可存取=" + TRI_LABEL[s.accessOk || "unchecked"]);
+    });
+  });
+
+  const llmsEl = document.getElementById("llmsTxtOutput");
+  if (llmsEl && llmsEl.value) lines.push("\n【llms.txt 草稿（Markdown，供 AI 讀取的網站摘要）】\n" + llmsEl.value);
+
+  const robotsEl = document.getElementById("robotsOutput");
+  if (robotsEl && robotsEl.value) lines.push("\n【robots／AI 爬蟲允許清單草稿】\n" + robotsEl.value);
+
+  if (mode === "newsite") {
+    lines.push("\n【Entity 一致性紀錄】");
+    entityItems.forEach(e => lines.push("- " + e.source + "：" + e.writtenAs));
+  }
+
+  lines.push("\n請指出：1）明顯錯誤或矛盾之處　2）遺漏但應該補充的重點　3）具體修改建議。");
+  return lines.join("\n");
+}
+
+function generateVerificationPrompt() {
+  if (!pages.length) { showToast("請先建立頁面清單再產生驗證用 Prompt", true); return; }
+  document.getElementById("aiVerifyPrompt").value = buildVerificationPrompt();
+  showToast("已產生驗證用 Prompt，可再自行編輯後複製");
+}
+
+// 先開新分頁、再寫剪貼簿：避免非同步的剪貼簿寫入把使用者手勢的時序拖長，導致瀏覽器判定成非使用者觸發而擋下彈出視窗
+function copyPromptAndOpenAi() {
+  const promptText = document.getElementById("aiVerifyPrompt").value;
+  if (!promptText.trim()) { showToast("請先產生驗證用 Prompt", true); return; }
+  const url = AI_PLATFORM_URLS[document.getElementById("aiPlatformSelect").value] || AI_PLATFORM_URLS.chatgpt;
+  const win = window.open(url, "_blank");
+  // 手動切斷 opener 關聯（等同 noopener 的安全效果），但不直接傳入 "noopener" 字串——
+  // 部分瀏覽器在帶 noopener 時 window.open 一律回傳 null，會讓下面的「是否被瀏覽器擋下」判斷失效。
+  if (win) { try { win.opener = null; } catch (e) { /* 跨瀏覽器行為差異，略過即可 */ } }
+  if (!win) {
+    showToast("瀏覽器擋下了新分頁，請手動開啟 AI 網站，上方 Prompt 已幫你選取好可直接複製", true);
+    const el = document.getElementById("aiVerifyPrompt");
+    el.focus(); el.select();
+    return;
+  }
+  try {
+    navigator.clipboard.writeText(promptText)
+      .then(() => showToast("已複製 Prompt 並開啟 AI，貼上後送出即可"))
+      .catch(() => {
+        showToast("已開啟 AI，但複製失敗，請手動選取複製上方 Prompt", true);
+        const el = document.getElementById("aiVerifyPrompt");
+        el.focus(); el.select();
+      });
+  } catch (e) {
+    showToast("已開啟 AI，但複製失敗，請手動選取複製上方 Prompt", true);
+  }
+}
+
+function saveAiVerification() {
+  const text = document.getElementById("aiVerifyReply").value.trim();
+  if (!text) { showToast("請先貼上 AI 的回覆內容", true); return; }
+  persist("geodesign:v1:aiverify", () => Object.assign({}, aiVerificationByMode, { [mode]: text }), v => {
+    aiVerificationByMode = v;
+    document.getElementById("aiVerifyReply").value = "";
+    renderAiVerification();
+    showToast("已儲存這次的 AI 驗證意見");
+  });
+}
+
+function clearAiVerification() {
+  persist("geodesign:v1:aiverify", () => Object.assign({}, aiVerificationByMode, { [mode]: "" }), v => {
+    aiVerificationByMode = v;
+    renderAiVerification();
+  });
+}
+
+function renderAiVerification() {
+  const box = document.getElementById("aiVerifySavedBox");
+  if (!box) return;
+  const saved = aiVerificationByMode[mode] || "";
+  box.innerHTML = saved
+    ? `<div class="item-card"><div class="title">已儲存的 AI 驗證意見（${escapeHtml(MODE_LABELS[mode])}）</div><div style="white-space:pre-wrap;font-size:0.85rem;">${escapeHtml(saved)}</div><button class="btn btn-danger btn-sm" style="margin-top:6px;" onclick="clearAiVerification()">清除這份驗證意見</button></div>`
+    : '<div class="empty">尚未儲存 AI 驗證意見（此步驟為選用，不影響報告產出）</div>';
+}
+
+// ============ 產出報告 ============
+
+function exportReport() {
+  const now = todayLocalISODate();
+  let html = `<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><title>GEO 網站設計健檢報告 - ${escapeHtml(brand.name || "")}</title>
+  <style>body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;max-width:900px;margin:40px auto;padding:0 20px;line-height:1.7;color:#151C31;}
+  h1{border-bottom:2px solid #151C31;padding-bottom:10px;}h2{margin-top:32px;border-left:4px solid #F7B52E;padding-left:10px;}
+  table{width:100%;border-collapse:collapse;font-size:0.9rem;margin-top:8px;}th,td{border:1px solid #E4DCC4;padding:6px 8px;text-align:left;vertical-align:top;}
+  .muted{color:#6B7280;font-size:0.85rem;}pre{white-space:pre-wrap;background:#FEF0C7;padding:10px;border-radius:6px;}</style></head><body>`;
+  html += `<h1>GEO 網站設計健檢報告</h1><p class="muted">模式：${escapeHtml(MODE_LABELS[mode])}｜產出時間：${now}</p>`;
+  html += `<h2>品牌基本資料</h2><p>品牌名稱：${escapeHtml(brand.name)}<br>官方網域：${escapeHtml(brand.officialDomain)}<br>產業別：${escapeHtml(brand.industry)}<br>產品／服務：${escapeHtml(brand.products)}<br>目標受眾：${escapeHtml(brand.audience)}</p>`;
+
+  html += `<h2>頁面清單（共 ${pages.length} 頁）</h2><table><tr><th>標題</th><th>網址</th><th>類型</th><th>重點頁</th><th>語言</th><th>主題標籤</th><th>備註</th></tr>` +
+    pages.map(p => `<tr><td>${escapeHtml(p.title)}</td><td>${escapeHtml(p.url || "")}</td><td>${escapeHtml(PAGE_TYPE_LABEL[p.type] || p.type)}</td><td>${p.isCore ? "是" : ""}</td><td>${escapeHtml(p.language || "zh-TW")}</td><td>${escapeHtml(p.topics || "")}</td><td>${escapeHtml(p.notes || "")}</td></tr>`).join("") + `</table>`;
+
+  html += `<h2>Schema 規劃</h2>` + pages.map(p => {
+    const r = getEffectiveSchema(p);
+    const statusLabel = { not_started: "未開始", draft: "草稿完成", applied: "操作人員標記為已套用" }[r.status] || "未開始";
+    return `<h3 style="margin-bottom:4px;">${escapeHtml(p.title)}</h3><p class="muted" style="margin:0 0 4px;">類型：${escapeHtml(r.schemaType || "")}｜狀態：${escapeHtml(statusLabel)}${r.customized ? "（已人工調整過 JSON-LD）" : ""}</p><pre>${escapeHtml(r.jsonld || "")}</pre>`;
+  }).join("");
+
+  if (mode === "existing") {
+    html += `<h2>核心頁面文案健檢</h2>` + corePages().map(p => {
+      const rec = copyCheckByPage[p.id] || {};
+      return `<h3 style="margin-bottom:4px;">${escapeHtml(p.title)}</h3><table><tr>` + COPY_CHECK_FIELDS.map(f => `<th>${f.label}</th>`).join("") + `</tr><tr>` +
+        COPY_CHECK_FIELDS.map(f => `<td>${COPY_CHECK_STATUS[rec[f.key] || "na"]}</td>`).join("") + `</tr></table>` +
+        (rec.notes ? `<p class="muted" style="margin:4px 0 0;">備註：${escapeHtml(rec.notes)}</p>` : "");
+    }).join("");
+  }
+
+  html += `<h2>FAQ／品牌問答庫（已採用）</h2><table><tr><th>頁面</th><th>問題</th><th>答案草稿</th></tr>` +
+    faqItems.filter(f => f.status === "adopted").map(f => { const p = pageById(f.pageId); return `<tr><td>${escapeHtml(p ? p.title : "")}</td><td>${escapeHtml(f.question)}</td><td>${escapeHtml(f.answerDraft || "（尚未填寫，需人工撰寫）")}</td></tr>`; }).join("") + `</table>`;
+
+  if (mode === "existing") {
+    html += `<h2>內部連結建議（全部，含未採用）</h2><table><tr><th>頁面A</th><th>頁面B</th><th>共同主題</th><th>狀態</th></tr>` +
+      currentLinkSuggestions.map(l => { const pa = pageById(l.pageA), pb = pageById(l.pageB); const statusLabel = l.status === "adopted" ? "已採用" : (l.status === "rejected" ? "不採用" : "建議中"); return `<tr><td>${escapeHtml(pa ? pa.title : "")}</td><td>${escapeHtml(pb ? pb.title : "")}</td><td>${escapeHtml((l.sharedTopics || []).join("、"))}</td><td>${statusLabel}</td></tr>`; }).join("") + `</table>`;
+  }
+
+  html += `<h2>技術可讀性檢核</h2><table><tr><th>頁面</th><th>階段</th><th>Index</th><th>Canonical</th><th>可存取</th><th>Schema已套用</th><th>檢查日期</th></tr>` +
+    pages.flatMap(p => {
+      const r = techByPage[p.id] || {};
+      return ["pre", "post"].map(stage => {
+        const s = r[stage] || {};
+        return `<tr><td>${escapeHtml(p.title)}</td><td>${stage === "post" ? "上線後" : "上線前"}</td><td>${escapeHtml(s.indexStatus || "未檢查")}</td><td>${TRI_LABEL[s.canonicalOk || "unchecked"]}</td><td>${TRI_LABEL[s.accessOk || "unchecked"]}</td><td>${TRI_LABEL[s.schemaApplied || "unchecked"]}</td><td>${escapeHtml(s.checkedDate || "")}</td></tr>`;
+      });
+    }).join("") + `</table>`;
+
+  if (mode === "newsite") {
+    html += `<h2>網站語意結構建議</h2>` + pages.map(p => {
+      const rec = semanticByPage[p.id] || {};
+      const skeleton = SEMANTIC_SKELETON[p.type] || SEMANTIC_SKELETON.other;
+      return `<h3 style="margin-bottom:4px;">${escapeHtml(p.title)}</h3><pre>${escapeHtml(skeleton.join("\n"))}</pre>` + (rec.notes ? `<p class="muted" style="margin:0 0 4px;">實際段落安排備註：${escapeHtml(rec.notes)}</p>` : "");
+    }).join("");
+
+    html += `<h2>Entity 一致性</h2><table><tr><th>出現位置</th><th>實際寫法</th><th>是否一致</th></tr>` +
+      entityItems.map(e => `<tr><td>${escapeHtml(e.source)}</td><td>${escapeHtml(e.writtenAs)}</td><td>${normName(e.writtenAs) === normName(brand.name) ? "一致" : "不一致"}</td></tr>`).join("") + `</table>`;
+
+    html += `<h2>權威來源佈局</h2><table><tr><th>頁面</th><th>已有外部佐證</th><th>建議</th></tr>` +
+      pages.map(p => { const has = (authorityByPage[p.id] || {}).hasSource || "unchecked"; return `<tr><td>${escapeHtml(p.title)}</td><td>${TRI_LABEL[has]}</td><td>${has !== "yes" ? "建議在提到具體數據／主張處，加入產業報告、官方數據或第三方評測連結佐證。" : ""}</td></tr>`; }).join("") + `</table>`;
+
+    html += `<h2>內容可信度標記</h2><table><tr><th>頁面</th><th>作者</th><th>更新日</th><th>資料來源</th></tr>` +
+      pages.map(p => { const r = credibilityByPage[p.id] || {}; return `<tr><td>${escapeHtml(p.title)}</td><td>${TRI_LABEL[r.hasAuthor || "unchecked"]}</td><td>${TRI_LABEL[r.hasDate || "unchecked"]}</td><td>${TRI_LABEL[r.hasSourceCite || "unchecked"]}</td></tr>`; }).join("") + `</table>`;
+  }
+
+  const llmsOutEl = document.getElementById("llmsTxtOutput");
+  const robotsOutEl = document.getElementById("robotsOutput");
+  if ((llmsOutEl && llmsOutEl.value) || (robotsOutEl && robotsOutEl.value)) {
+    html += `<h2>llms.txt 與 robots／AI 爬蟲允許清單草稿</h2><p class="muted">兩者用途不同、需分開部署到網站根目錄，且都需人工確認內容正確後再交由網站人員上線。</p>`;
+    if (llmsOutEl && llmsOutEl.value) html += `<h3 style="margin-bottom:4px;">llms.txt（Markdown 格式）</h3><pre>${escapeHtml(llmsOutEl.value)}</pre>`;
+    if (robotsOutEl && robotsOutEl.value) html += `<h3 style="margin-bottom:4px;">robots／AI 爬蟲允許清單</h3><pre>${escapeHtml(robotsOutEl.value)}</pre>`;
+  }
+
+  if (aiVerificationByMode[mode]) {
+    html += `<h2>AI 驗證意見</h2><p class="muted">以下為使用者自行貼上的 AI 回覆內容，屬於人工確認用參考意見，並非本工具規則邏輯產出，請自行核實正確性後再採用。</p><pre>${escapeHtml(aiVerificationByMode[mode])}</pre>`;
+  }
+
+  html += `<p class="muted" style="margin-top:40px;">本報告由 GEO 網站設計工具產出，內容為規則式建議，實際套用仍需人工確認。</p></body></html>`;
+
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "GEO網站設計健檢報告_" + now + ".html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast("報告已下載");
+}
+
+init();
+</script>
+</body>
+</html>
