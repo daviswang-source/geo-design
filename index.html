@@ -161,12 +161,13 @@
 
   <div class="card">
     <h2>頁面清單 <span class="hint" id="pageQuotaHint"></span></h2>
-    <p class="note">直接在下面表格裡填寫多個頁面，填完全部再按一次「儲存頁面清單」即可，不用一列一列分開新增。「列為重點頁面」是既有優化模式的核心頁面、也是新站模式權威來源／可信度標記等模組的檢查對象。</p>
+    <p class="note">直接在下面表格裡填寫多個頁面，填完全部再按一次「儲存頁面清單」即可，不用一列一列分開新增。「列為重點頁面」是既有優化模式（報價 A）核心頁面文案健檢／內部連結的檢查對象；新站架設模式（報價 B）的語意結構／權威來源／可信度標記則涵蓋全部頁面，沒有核心頁面的區分。</p>
+    <p class="note" id="pageUrlModeNote" style="margin-top:0;"></p>
     <div id="pageQuotaWarn"></div>
     <div id="languageQuotaNote"></div>
     <div style="overflow-x:auto;">
       <table class="entries" id="pagesEditTable">
-        <thead><tr><th style="min-width:120px;">頁面標題</th><th style="min-width:140px;">網址／路徑</th><th style="min-width:100px;">類型</th><th style="min-width:140px;">主題標籤</th><th style="min-width:80px;">語言</th><th>重點頁</th><th style="min-width:100px;">備註</th><th></th></tr></thead>
+        <thead><tr><th style="min-width:120px;">頁面標題</th><th id="pageUrlColHeader" style="min-width:140px;">網址／路徑</th><th style="min-width:100px;">類型</th><th style="min-width:140px;">主題標籤</th><th style="min-width:80px;">語言</th><th>重點頁</th><th style="min-width:100px;">備註</th><th></th></tr></thead>
         <tbody id="pagesEditBody"></tbody>
       </table>
     </div>
@@ -193,7 +194,7 @@
   </div>
 
   <div class="card" data-scope="both">
-    <h2>FAQ／品牌問答庫 <span class="hint" id="faqQuotaHint"></span></h2>
+    <h2><span id="faqSectionTitle">FAQ／品牌問答庫</span> <span class="hint" id="faqQuotaHint"></span></h2>
     <p class="note">依頁面主題產出候選問題方向（規則式模板，非全文案撰寫），人工挑選、微調後採用。</p>
     <div id="faqQuotaWarn"></div>
     <div id="faqList"></div>
@@ -214,13 +215,16 @@
     <div style="margin-top:var(--space-md);">
       <p class="note" style="margin-top:0;">下方分別產出兩份草稿：llms.txt（給生成式 AI 讀的網站摘要，Markdown 格式）跟 robots／AI 爬蟲允許清單建議（哪些爬蟲可以／不可以存取）。兩者用途不同，請分開部署到網站根目錄，且都需人工確認內容正確後再交由網站人員上線。</p>
       <button class="btn btn-ghost" onclick="generateLlmsTxt()">產出 llms.txt 草稿</button>
+      <div id="llmsTxtStaleWarn"></div>
       <div class="copy-box" style="margin-top:8px;">
         <textarea id="llmsTxtOutput" rows="8" readonly placeholder="按上方按鈕產出草稿"></textarea>
         <button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('llmsTxtOutput')">複製</button>
       </div>
+      <p class="note" style="margin-top:12px;">robots／AI 爬蟲允許清單不會預設全部開放：請先針對下方每一個爬蟲逐一決定是否允許存取，尚未決定的不會輸出到草稿裡（避免工具幫你「預設全面允許」）。搜尋收錄、AI 模型訓練、AI 使用者即時瀏覽三種用途不同，請分開考慮。</p>
+      <div id="crawlerPolicyList"></div>
       <button class="btn btn-ghost" style="margin-top:8px;" onclick="generateRobotsDraft()">產出 robots／AI 爬蟲允許清單建議</button>
       <div class="copy-box" style="margin-top:8px;">
-        <textarea id="robotsOutput" rows="8" readonly placeholder="按上方按鈕產出草稿"></textarea>
+        <textarea id="robotsOutput" rows="10" readonly placeholder="按上方按鈕產出草稿"></textarea>
         <button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('robotsOutput')">複製</button>
       </div>
     </div>
@@ -234,24 +238,40 @@
 
   <div class="card" data-scope="newsite">
     <h2>Entity 一致性建置</h2>
-    <p class="note">記錄品牌名稱在各處（頁面、第三方平台、社群等）的實際寫法，比對是否與正式品牌名稱一致。</p>
+    <p class="note">記錄品牌識別資訊（名稱、別名、官方網址、Logo、電話、地址、社群帳號等）在各處出現時的實際寫法，比對是否與預期標準值一致，並可附上修正建議與 sameAs 網址。</p>
     <div class="field-row3">
+      <div class="field"><label>資料類型</label>
+        <select id="entityDataType">
+          <option value="name">正式名稱</option>
+          <option value="alias">別名</option>
+          <option value="url">官方網址</option>
+          <option value="logo">Logo</option>
+          <option value="phone">電話</option>
+          <option value="address">地址</option>
+          <option value="social">社群帳號</option>
+        </select>
+      </div>
       <div class="field"><label>出現位置／來源說明</label><input type="text" id="entitySource" placeholder="例如：官網頁尾、Google 商家檔案"></div>
       <div class="field"><label>實際寫法</label><input type="text" id="entityWrittenAs"></div>
-      <div class="field" style="display:flex; align-items:flex-end;"><button class="btn btn-cta" onclick="addEntity()">新增紀錄</button></div>
     </div>
+    <div class="field-row3">
+      <div class="field"><label>預期標準值（選填，留空時「正式名稱」類型會自動比對品牌名稱）</label><input type="text" id="entityExpectedValue"></div>
+      <div class="field"><label>修正建議（選填）</label><input type="text" id="entitySuggestion"></div>
+      <div class="field"><label>sameAs 網址（選填）</label><input type="text" id="entitySameAs" placeholder="例如社群主頁網址"></div>
+    </div>
+    <button class="btn btn-cta" onclick="addEntity()">新增紀錄</button>
     <div id="entityList"></div>
   </div>
 
   <div class="card" data-scope="newsite">
     <h2>權威來源佈局建議</h2>
-    <p class="note">檢查重點頁面目前是否已有外部佐證（產業報告、官方數據、第三方評測），沒有的話給出建議放置方向。</p>
+    <p class="note">檢查各頁面目前是否已有外部佐證（產業報告、官方數據、第三方評測），沒有的話給出建議放置方向。涵蓋全部頁面，不限重點頁面。</p>
     <div id="authorityList"></div>
   </div>
 
   <div class="card" data-scope="newsite">
     <h2>內容可信度標記補強</h2>
-    <p class="note">檢查重點頁面是否已標示作者、最後更新日、資料來源三項可信度標記。</p>
+    <p class="note">檢查各頁面是否已標示作者、最後更新日、資料來源三項可信度標記。涵蓋全部頁面，不限重點頁面。</p>
     <div id="credibilityList"></div>
   </div>
 
@@ -299,12 +319,12 @@
       <ol>
         <li>先選擇模式（既有網站優化／新站架設階段）——會影響頁數上限提醒跟顯示哪些模組。</li>
         <li>填寫品牌基本資料，再到頁面清單表格裡填多個頁面（可以先「＋新增一列」多開幾列，一次填完再按「儲存頁面清單」，不用一列列分開存）。頁面清單是所有模組的底稿，務必先建立。</li>
-        <li>在頁面清單勾選「列為重點頁面」——核心頁面文案健檢、內部連結、權威來源、可信度標記都是以重點頁面為對象。</li>
+        <li>在頁面清單勾選「列為重點頁面」——這是既有網站優化模式（報價 A）核心頁面文案健檢、內部連結的檢查對象；新站架設模式（報價 B）的語意結構、權威來源、可信度標記則涵蓋全部頁面，不受此勾選影響。</li>
         <li>各模組產出的建議都是「規則式帶出候選內容」，需要人工確認、微調後才算完成，工具本身不會自動把內容送上網站。</li>
         <li>此工具只做「設計／規劃／檢核」的產出，不含上線後的長期 AI 能見度追蹤；追蹤請切換到既有的「網站追蹤」工具。</li>
         <li>如果想讓 AI 幫忙檢查內容，可以用「AI 內容驗證」區塊：產生 Prompt、複製並開啟 AI、把回覆貼回來儲存，這份意見會另外列在報告最後，跟規則式產出分開，方便你自己判斷要不要採用。</li>
         <li>完成後可以用「產出健檢報告」把目前模式的所有結果（含 AI 驗證意見，如果有存的話）整理成一份文件下載。</li>
-        <li>此工具的資料只存在目前瀏覽器分頁裡，關閉分頁就會清空；如果要重新開始，也可以按最上面的「清除目前所有資料」。</li>
+        <li>此工具資料一般只留在目前這個瀏覽器分頁的工作階段中，不會上傳到任何伺服器——關閉分頁／瀏覽器通常會清除，但瀏覽器的分頁還原、複製分頁等機制仍可能保留資料；如果要確定重新開始，請按最上面的「清除目前所有資料」。</li>
       </ol>
     </details>
   </div>
@@ -360,10 +380,13 @@ const COPY_CHECK_FIELDS = [
   { key: "scenario", label: "應用情境是否清楚" },
   { key: "needs", label: "可解決之需求是否清楚" },
 ];
-const COPY_CHECK_STATUS = { ok: "符合", partial: "部分符合", no: "不符合", na: "不適用" };
+const COPY_CHECK_STATUS = { unchecked: "尚未檢查", ok: "符合", partial: "部分符合", no: "不符合", na: "不適用" };
 
 // 三態核取共用：unchecked／yes／no，避免「未檢查」和「已確認不符合」被當成同一種狀態
 const TRI_LABEL = { unchecked: "尚未檢查", yes: "是", no: "否" };
+// index 狀態的儲存值是 "unknown"（不是空字串／undefined），輸出時要對應成中文顯示，
+// 否則報告／Prompt 會直接印出英文字面值 "unknown"。
+const INDEX_LABEL = { unknown: "未檢查", index: "index", noindex: "noindex" };
 function triStateSelect(onchangeExpr, value) {
   const v = value || "unchecked";
   return `<select onchange="${onchangeExpr}">
@@ -396,9 +419,13 @@ let brand = { name: "", officialDomain: "", industry: "", products: "", audience
 let pages = [];
 let schemaByPage = {};
 let copyCheckByPage = {};
+// 純畫面狀態（不寫入 sessionStorage）：記錄哪些頁面的「AI 輔助健檢」收合區塊目前是展開的，
+// 這樣貼文案／存意見觸發的重新渲染不會把使用者剛打開的區塊又收合回去。
+let copyCheckDetailsOpen = new Set();
 let faqItems = [];
 let linkItems = [];
 let techByPage = {};
+let crawlerPolicy = {};
 let entityItems = [];
 let authorityByPage = {};
 let credibilityByPage = {};
@@ -476,6 +503,51 @@ function copyTextarea(id) {
 function corePages() { return pages.filter(p => p.isCore); }
 function pageById(id) { return pages.find(p => p.id === id); }
 
+// ============ 資料結構搬遷（舊版 sessionStorage 資料 → 新版結構）============
+// 情境：使用者分頁開著舊版工具沒關，網站部署了新版檔案後按重新整理——
+// sessionStorage 會留著、但資料結構是舊的（技術檢核是單一物件、權威/可信度是布林值）。
+// 這裡在 init() 讀檔後立刻轉換成新結構，轉換過就直接存回去，避免舊資料被新版誤判成「尚未檢查」。
+
+function migrateTechData(raw) {
+  const migrated = {};
+  let changed = false;
+  Object.keys(raw || {}).forEach(pageId => {
+    const rec = raw[pageId];
+    if (!rec) return;
+    if (rec.pre || rec.post) { migrated[pageId] = rec; return; } // 已經是新結構
+    changed = true;
+    const boolToTri = (v) => (v === true ? "yes" : (v === false ? "no" : "unchecked"));
+    const stage = rec.stage === "post" ? "post" : "pre"; // 舊版用 stage 欄位標示上線前／後
+    const converted = { pre: {}, post: {} };
+    converted[stage] = {
+      indexStatus: rec.indexStatus || "unknown",
+      canonicalOk: boolToTri(rec.canonicalOk),
+      accessOk: boolToTri(rec.accessOk),
+      schemaApplied: boolToTri(rec.schemaApplied),
+      checkedDate: rec.checkedDate || "",
+    };
+    migrated[pageId] = converted;
+  });
+  return { data: migrated, changed };
+}
+
+function migrateBooleanTriState(raw, keys) {
+  const migrated = {};
+  let changed = false;
+  Object.keys(raw || {}).forEach(pageId => {
+    const rec = raw[pageId] || {};
+    const next = Object.assign({}, rec);
+    keys.forEach(k => {
+      const v = rec[k];
+      if (v === true) { next[k] = "yes"; changed = true; }
+      else if (v === false) { next[k] = "no"; changed = true; }
+      // 已經是 "yes"／"no"／"unchecked" 字串，或本來就沒有值，都不需要轉換
+    });
+    migrated[pageId] = next;
+  });
+  return { data: migrated, changed };
+}
+
 // ============ 初始化 ============
 
 function init() {
@@ -487,11 +559,25 @@ function init() {
   faqItems = loadJSON("geodesign:v1:faq", [], true);
   linkItems = loadJSON("geodesign:v1:links", [], true);
   techByPage = loadJSON("geodesign:v1:tech", {}, true);
+  crawlerPolicy = loadJSON("geodesign:v1:crawlerpolicy", {}, true);
   entityItems = loadJSON("geodesign:v1:entity", [], true);
   authorityByPage = loadJSON("geodesign:v1:authority", {}, true);
   credibilityByPage = loadJSON("geodesign:v1:credibility", {}, true);
   semanticByPage = loadJSON("geodesign:v1:semantic", {}, true);
   aiVerificationByMode = loadJSON("geodesign:v1:aiverify", { existing: "", newsite: "" }, true);
+
+  // 舊版 sessionStorage 資料結構搬遷：只有偵測到真的是舊格式時才轉換並存回去，新資料完全不受影響
+  const techMigration = migrateTechData(techByPage);
+  techByPage = techMigration.data;
+  if (techMigration.changed) persist("geodesign:v1:tech", () => techByPage, v => { techByPage = v; });
+
+  const authorityMigration = migrateBooleanTriState(authorityByPage, ["hasSource"]);
+  authorityByPage = authorityMigration.data;
+  if (authorityMigration.changed) persist("geodesign:v1:authority", () => authorityByPage, v => { authorityByPage = v; });
+
+  const credibilityMigration = migrateBooleanTriState(credibilityByPage, ["hasAuthor", "hasDate", "hasSourceCite"]);
+  credibilityByPage = credibilityMigration.data;
+  if (credibilityMigration.changed) persist("geodesign:v1:credibility", () => credibilityByPage, v => { credibilityByPage = v; });
 
   populateBrandForm();
   rebuildPagesDraftFromSaved();
@@ -549,6 +635,8 @@ function renderAll() {
   renderFaq();
   renderLinks();
   renderTech();
+  renderCrawlerPolicy();
+  renderLlmsTxtStaleness();
   renderSemantic();
   renderEntity();
   renderAuthority();
@@ -649,7 +737,7 @@ function renderPagesEditTable() {
   const tbody = document.getElementById("pagesEditBody");
   tbody.innerHTML = pagesDraft.map(r => `<tr data-row-key="${r.key}">
     <td><input type="text" value="${escapeHtml(r.title)}" oninput="updateDraftCell('${r.key}','title',this.value)" placeholder="頁面標題"></td>
-    <td><input type="text" value="${escapeHtml(r.url)}" oninput="updateDraftCell('${r.key}','url',this.value)" placeholder="/products/xxx"></td>
+    <td><input type="text" value="${escapeHtml(r.url)}" oninput="updateDraftCell('${r.key}','url',this.value)" placeholder="${mode === "newsite" ? "選填，例如 /products/xxx（尚未上線）" : "/products/xxx"}"></td>
     <td><select onchange="updateDraftCell('${r.key}','type',this.value)">
       ${PAGE_TYPES.map(t => `<option value="${t.value}" ${t.value === r.type ? "selected" : ""}>${t.label}</option>`).join("")}
     </select></td>
@@ -668,6 +756,15 @@ function renderPages() {
   const langEl = document.getElementById("languageQuotaNote");
   let warnHtml = "";
   let langHtml = "";
+
+  // 新站架設階段網站尚未上線，這欄不是「現有網址」，是規劃中的路徑；欄名與說明依模式切換，
+  // 避免讓人誤以為要填一個當下根本不存在的網址。
+  const urlHeaderEl = document.getElementById("pageUrlColHeader");
+  const urlNoteEl = document.getElementById("pageUrlModeNote");
+  if (urlHeaderEl) urlHeaderEl.textContent = mode === "newsite" ? "規劃路徑（選填）" : "網址／路徑";
+  if (urlNoteEl) urlNoteEl.textContent = mode === "newsite"
+    ? "新站架設階段網站尚未上線，「規劃路徑」欄位是選填的預計路徑（例如 /products/xxx），不是要你提供現有網址；這份清單代表依 SEO 關鍵字與競品分析產出的網站架構規劃頁面。"
+    : "";
 
   if (mode === "newsite") {
     // 依語言各自獨立比對 23 頁上限：繁中頁數自己跟 23 比、其他語言各自的頁數也各自跟 23 比，
@@ -721,27 +818,38 @@ function buildDefaultJsonLd(page, schemaType) {
   return JSON.stringify(base, null, 2);
 }
 
-function getEffectiveSchema(page) {
-  const rec = schemaByPage[page.id];
-  if (rec) return rec;
-  const schemaType = SCHEMA_SUGGEST[page.type] || "WebPage";
-  return { schemaType, jsonld: buildDefaultJsonLd(page, schemaType), status: "not_started", customized: false };
+function schemaSourceSnapshot(page) {
+  return { pageTitle: (page && page.title) || "", pageType: (page && page.type) || "", brandName: brand.name || "", brandDomain: brand.officialDomain || "" };
 }
 
-// 把畫面上看得到、但使用者還沒手動碰過（沒存進 schemaByPage）的預設建議，一次補寫進儲存資料，
-// 這樣「產出報告」讀 schemaByPage 時才不會是空的
-function ensureSchemaDefaults() {
-  const missing = pages.filter(p => !schemaByPage[p.id]);
-  if (!missing.length) return;
-  persist("geodesign:v1:schema", () => {
-    const next = Object.assign({}, schemaByPage);
-    missing.forEach(p => { next[p.id] = getEffectiveSchema(p); });
-    return next;
-  }, v => { schemaByPage = v; });
+// 只有「使用者已手動調整過 JSON」的紀錄才需要判斷來源資料是否變了（因為那份內容不會被自動覆蓋）。
+// 沒有 sourceSnapshot（例如舊資料、或還沒手動調整過）一律視為沒有飄移，避免對舊資料誤判。
+function schemaSourceDrifted(rec, page) {
+  if (!rec.sourceSnapshot) return false;
+  const cur = schemaSourceSnapshot(page);
+  const prev = rec.sourceSnapshot;
+  return cur.pageTitle !== prev.pageTitle || cur.pageType !== prev.pageType || cur.brandName !== prev.brandName || cur.brandDomain !== prev.brandDomain;
+}
+
+function getEffectiveSchema(page) {
+  const rec = schemaByPage[page.id];
+  const schemaType = (rec && rec.schemaType) || SCHEMA_SUGGEST[(page && page.type)] || "WebPage";
+  if (rec && rec.customized) {
+    // 使用者已手動調整過 JSON 內容：內容本身不自動覆蓋，只由畫面另外判斷來源資料是否已變動並提示，
+    // 避免「品牌改名/頁面改標題後，Schema 卻默默沿用舊資料」的問題。
+    return rec;
+  }
+  // 尚未手動調整：JSON-LD 永遠即時依目前的頁面／品牌資料重新產生，不會因為改了品牌名稱或頁面標題就過期，
+  // 也不需要另外持久化「預設值」——這裡本身就是單一事實來源，畫面／AI驗證Prompt／匯出報告都呼叫這個函式取得最新內容。
+  return {
+    schemaType,
+    jsonld: buildDefaultJsonLd(page || {}, schemaType),
+    status: (rec && rec.status) || "not_started",
+    customized: false,
+  };
 }
 
 function renderSchema() {
-  ensureSchemaDefaults();
   const warnEl = document.getElementById("schemaQuotaWarn");
   const quota = MODE_QUOTA[mode];
   warnEl.innerHTML = pages.length > quota.pages ? `<div class="quota-warn">頁面數已超過 ${quota.pages} 頁上限。</div>` : "";
@@ -753,6 +861,7 @@ function renderSchema() {
     let jsonInvalid = false;
     try { parsedType = JSON.parse(rec.jsonld)["@type"]; } catch (e) { jsonInvalid = true; }
     const mismatch = !jsonInvalid && parsedType && parsedType !== rec.schemaType;
+    const drifted = rec.customized && schemaSourceDrifted(rec, p);
     return `<div class="item-card">
       <div class="row">
         <div class="title">${escapeHtml(p.title)}</div>
@@ -764,6 +873,7 @@ function renderSchema() {
       </div>
       ${jsonInvalid ? '<div class="quota-warn">目前 JSON-LD 內容不是合法的 JSON 格式，請檢查語法（例如缺逗號、括號沒對齊）。</div>' : ''}
       ${mismatch ? `<div class="quota-warn">目前 JSON 內的 @type 是「${escapeHtml(parsedType)}」，跟上面選的類型「${escapeHtml(rec.schemaType)}」不一致。<button class="btn btn-ghost btn-sm" onclick="regenerateSchemaJsonld('${p.id}')">重新產生此類型模板</button>（會覆蓋目前內容，請先確認沒有想保留的手動修改）</div>` : ''}
+      ${drifted ? `<div class="quota-warn">頁面標題／類型或品牌資料，自上次手動調整這份 JSON-LD 後已經變更，目前顯示的仍是舊資料，請重新確認內容是否還正確。<button class="btn btn-ghost btn-sm" onclick="regenerateSchemaJsonld('${p.id}')">改回自動產生的模板</button>（會覆蓋目前手動修改的內容）</div>` : ''}
       <div class="copy-box" style="margin-top:6px;">
         <textarea rows="6" id="schemaJsonld-${p.id}" onchange="updateSchemaField('${p.id}','jsonld',this.value)">${escapeHtml(rec.jsonld)}</textarea>
         <button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('schemaJsonld-${p.id}')">複製</button>
@@ -788,6 +898,7 @@ function regenerateSchemaJsonld(pageId) {
     const rec = Object.assign({}, getEffectiveSchema(p));
     rec.jsonld = buildDefaultJsonLd(p, rec.schemaType);
     rec.customized = false;
+    delete rec.sourceSnapshot;
     c[pageId] = rec;
     return c;
   }, v => { schemaByPage = v; renderSchema(); showToast("已重新產生模板"); });
@@ -803,7 +914,7 @@ function updateSchemaField(pageId, field, value) {
       // 使用者還沒手動改過 JSON 內容，換類型時直接同步重新產生模板，避免選單跟 JSON 兜不起來
       rec.jsonld = buildDefaultJsonLd(p || {}, value);
     }
-    if (field === "jsonld") rec.customized = true;
+    if (field === "jsonld") { rec.customized = true; rec.sourceSnapshot = schemaSourceSnapshot(p || {}); }
     c[pageId] = rec;
     return c;
   }, v => { schemaByPage = v; renderSchema(); });
@@ -821,17 +932,35 @@ function renderCopyChecks() {
   if (!cps.length) { el.innerHTML = '<div class="empty">請先在頁面清單勾選「列為重點頁面」</div>'; return; }
   el.innerHTML = cps.map(p => {
     const rec = copyCheckByPage[p.id] || {};
-    const gaps = COPY_CHECK_FIELDS.filter(f => (rec[f.key] || "na") === "no" || rec[f.key] === "partial");
+    const gaps = COPY_CHECK_FIELDS.filter(f => (rec[f.key] || "unchecked") === "no" || rec[f.key] === "partial");
     return `<div class="item-card">
       <div class="title">${escapeHtml(p.title)}</div>
       ${COPY_CHECK_FIELDS.map(f => `<div class="row" style="margin-top:4px;">
         <label style="margin:0;flex:1;">${f.label}</label>
         <select style="width:auto;" onchange="updateCopyCheckField('${p.id}','${f.key}',this.value)">
-          ${["ok", "partial", "no", "na"].map(s => `<option value="${s}" ${(rec[f.key] || "na") === s ? "selected" : ""}>${COPY_CHECK_STATUS[s]}</option>`).join("")}
+          ${["unchecked", "ok", "partial", "no", "na"].map(s => `<option value="${s}" ${(rec[f.key] || "unchecked") === s ? "selected" : ""}>${COPY_CHECK_STATUS[s]}</option>`).join("")}
         </select>
       </div>`).join("")}
       <textarea placeholder="補充備註（選填）" style="margin-top:6px;" onchange="updateCopyCheckField('${p.id}','notes',this.value)">${escapeHtml(rec.notes || "")}</textarea>
       ${gaps.length ? `<div class="copy-box" style="margin-top:6px;"><textarea rows="${gaps.length + 1}" id="copySuggest-${p.id}" readonly>${escapeHtml(gaps.map(g => "· " + f_label(g) + "：" + COPY_CHECK_SUGGEST[g.key]).join("\\n"))}</textarea><button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('copySuggest-${p.id}')">複製建議</button></div>` : '<div class="empty">目前六項皆無缺漏標記</div>'}
+      <details style="margin-top:8px;" ${copyCheckDetailsOpen.has(p.id) ? "open" : ""} ontoggle="toggleCopyCheckDetails('${p.id}', this.open)">
+        <summary style="cursor:pointer;font-size:0.85rem;color:var(--color-muted,#6B7280);">AI 輔助健檢（選用，需先貼上這頁實際文案）</summary>
+        <div style="margin-top:6px;">
+          <textarea placeholder="貼上這頁目前的實際文案（選填，要有內容 AI 才能檢查）" style="min-height:80px;" onchange="updateCopyCheckField('${p.id}','actualCopyText',this.value)">${escapeHtml(rec.actualCopyText || "")}</textarea>
+          <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="generateCopyCheckPrompt('${p.id}')">產生此頁 AI 健檢 Prompt</button>
+          <div class="copy-box" style="margin-top:6px;">
+            <textarea id="copyCheckAiPrompt-${p.id}" rows="6" readonly placeholder="按上方按鈕產出 Prompt"></textarea>
+            <button class="btn btn-ghost btn-sm copy-btn" onclick="copyTextarea('copyCheckAiPrompt-${p.id}')">複製</button>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="copyPromptFromTextareaAndOpenAi('copyCheckAiPrompt-${p.id}')">複製 Prompt 並開啟 AI</button>
+          <div style="margin-top:6px;">
+            <label style="font-size:0.8rem;">把 AI 的回覆貼在這裡</label>
+            <textarea id="copyCheckAiReply-${p.id}" rows="4" placeholder="從 AI 那邊複製完整回覆貼上來"></textarea>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="saveCopyCheckAiNote('${p.id}')">儲存這頁的 AI 健檢意見</button>
+          ${rec.aiCheckNote ? `<div class="item-card" style="margin-top:6px;"><div class="title" style="font-size:0.8rem;">AI 健檢意見（僅供參考，非本工具規則邏輯產出，請自行核實後再採用）</div><div style="white-space:pre-wrap;font-size:0.8rem;">${escapeHtml(rec.aiCheckNote)}</div><button class="btn btn-danger btn-sm" style="margin-top:4px;" onclick="clearCopyCheckAiNote('${p.id}')">清除這則 AI 意見</button></div>` : ""}
+        </div>
+      </details>
     </div>`;
   }).join("");
 }
@@ -845,11 +974,67 @@ function updateCopyCheckField(pageId, field, value) {
   }, v => { copyCheckByPage = v; renderCopyChecks(); });
 }
 
+// 文案健檢的 AI 輔助：這是獨立於下面「AI 內容驗證」附錄的另一個功能——那個是看整份規劃的中繼資料，
+// 這裡是針對「單一頁面、真實文案內容」做檢查，兩者刻意分開，不互相帶入對方的資料。
+// 跟其他 AI 流程一樣：只做「產生 Prompt →複製並開新分頁 →人工貼回覆 →存成附錄」，絕不自動解析或覆蓋規則式欄位。
+function buildCopyCheckPrompt(pageId) {
+  const p = pageById(pageId);
+  if (!p) return "";
+  const rec = copyCheckByPage[pageId] || {};
+  const lines = [];
+  lines.push("你是一位熟悉 GEO（生成式引擎優化）與網站文案策略的顧問，請針對以下「單一頁面」的實際文案，依六個面向逐項檢查是否清楚，並指出具體缺漏與建議補充方向（條列回覆即可，請勿直接改寫全文）：");
+  lines.push("\n【頁面】" + p.title + "（" + (PAGE_TYPE_LABEL[p.type] || p.type) + "）");
+  lines.push("【品牌名稱】" + (brand.name || "（未填寫）"));
+  lines.push("\n【檢查面向】");
+  COPY_CHECK_FIELDS.forEach(f => lines.push("- " + f.label));
+  lines.push("\n【目前頁面實際文案】");
+  lines.push(rec.actualCopyText && rec.actualCopyText.trim() ? rec.actualCopyText : "（尚未貼上文案，請提醒我需要先提供文案內容才能檢查）");
+  lines.push("\n請針對上面六個面向逐項回覆「符合／部分符合／不符合／不適用」，並簡述理由；不符合或部分符合的項目請給具體修改方向。");
+  return lines.join("\n");
+}
+
+function generateCopyCheckPrompt(pageId) {
+  const rec = copyCheckByPage[pageId] || {};
+  if (!rec.actualCopyText || !rec.actualCopyText.trim()) { showToast("請先貼上這頁目前的實際文案，AI 才有內容可以檢查", true); return; }
+  const el = document.getElementById("copyCheckAiPrompt-" + pageId);
+  if (el) el.value = buildCopyCheckPrompt(pageId);
+  showToast("已產生這頁的 AI 健檢 Prompt，可再自行編輯後複製");
+}
+
+function saveCopyCheckAiNote(pageId) {
+  const el = document.getElementById("copyCheckAiReply-" + pageId);
+  const text = el ? el.value.trim() : "";
+  if (!text) { showToast("請先貼上 AI 的回覆內容", true); return; }
+  persist("geodesign:v1:copychecks", () => {
+    const c = Object.assign({}, copyCheckByPage);
+    c[pageId] = Object.assign({}, c[pageId], { aiCheckNote: text });
+    return c;
+  }, v => { copyCheckByPage = v; renderCopyChecks(); showToast("已儲存這頁的 AI 健檢意見"); });
+}
+
+function toggleCopyCheckDetails(pageId, isOpen) {
+  if (isOpen) copyCheckDetailsOpen.add(pageId); else copyCheckDetailsOpen.delete(pageId);
+}
+
+function clearCopyCheckAiNote(pageId) {
+  persist("geodesign:v1:copychecks", () => {
+    const c = Object.assign({}, copyCheckByPage);
+    c[pageId] = Object.assign({}, c[pageId], { aiCheckNote: "" });
+    return c;
+  }, v => { copyCheckByPage = v; renderCopyChecks(); });
+}
+
 // ============ FAQ ============
+
+// FAQ 資料以 f.mode 標記屬於哪個模式產生／採用：報價 A（existing）與報價 B（newsite）
+// 的 FAQ 額度、交付範圍完全不同，不能讓兩模式互相佔用彼此的配額。沒有 mode 標記的舊資料
+// 一律視為屬於 existing（預設模式），避免舊紀錄憑空消失。
+function faqBelongsToCurrentMode(f) { return (f.mode || "existing") === mode; }
 
 function faqQuotaState() {
   const quota = MODE_QUOTA[mode];
-  const adopted = faqItems.filter(f => f.status === "adopted");
+  const scoped = faqItems.filter(faqBelongsToCurrentMode);
+  const adopted = scoped.filter(f => f.status === "adopted");
   if (mode === "existing") {
     const pageIds = new Set(adopted.map(f => f.pageId));
     return { adoptedCount: adopted.length, pageCount: pageIds.size, overTotal: adopted.length > quota.faqTotal, overPages: pageIds.size > quota.faqPages };
@@ -860,7 +1045,9 @@ function faqQuotaState() {
 function renderFaq() {
   const hintEl = document.getElementById("faqQuotaHint");
   const warnEl = document.getElementById("faqQuotaWarn");
+  const titleEl = document.getElementById("faqSectionTitle");
   const st = faqQuotaState();
+  if (titleEl) titleEl.textContent = mode === "existing" ? "FAQ 問題方向" : "品牌問答庫";
   if (mode === "existing") {
     hintEl.textContent = `已採用 ${st.adoptedCount} 組／上限 20 組，共 ${st.pageCount} 頁／上限 5 頁`;
     warnEl.innerHTML = (st.overTotal || st.overPages) ? `<div class="quota-warn">已超過 FAQ 上限（至多5頁／總計20組），超出部分屬加購範圍。</div>` : "";
@@ -869,9 +1056,16 @@ function renderFaq() {
     warnEl.innerHTML = "";
   }
   const el = document.getElementById("faqList");
-  if (!pages.length) { el.innerHTML = '<div class="empty">請先建立頁面清單</div>'; return; }
-  el.innerHTML = pages.map(p => {
-    const items = faqItems.filter(f => f.pageId === p.id);
+  // 報價 A 的 FAQ 僅適用核心頁面（至多5頁）；報價 B 沒有核心頁概念，適用全部頁面。
+  const scopedPages = mode === "existing" ? corePages() : pages;
+  if (!scopedPages.length) {
+    el.innerHTML = mode === "existing"
+      ? '<div class="empty">請先在頁面清單勾選「列為重點頁面」——FAQ 依報價僅適用核心頁面</div>'
+      : '<div class="empty">請先建立頁面清單</div>';
+    return;
+  }
+  el.innerHTML = scopedPages.map(p => {
+    const items = faqItems.filter(f => f.pageId === p.id && faqBelongsToCurrentMode(f));
     const adoptedCount = items.filter(f => f.status === "adopted").length;
     const overPerPage = mode === "newsite" && MODE_QUOTA.newsite.faqPerPage && adoptedCount > MODE_QUOTA.newsite.faqPerPage;
     return `<div class="item-card">
@@ -882,7 +1076,9 @@ function renderFaq() {
       ${overPerPage ? '<div class="quota-warn">此頁已超過每頁 5 組上限。</div>' : ''}
       ${items.length ? items.map(f => `<div class="item-card ${f.status === 'rejected' ? 'rejected' : ''}" style="background:var(--color-surface);">
         <input type="text" value="${escapeHtml(f.question)}" onchange="updateFaqQuestion('${f.id}',this.value)">
-        <textarea placeholder="答案草稿（選填，人工填寫，非本工具自動產生文案）" style="margin-top:4px;" onchange="updateFaqAnswer('${f.id}',this.value)">${escapeHtml(f.answerDraft || "")}</textarea>
+        ${mode === "newsite"
+          ? `<textarea placeholder="答案草稿（選填，人工填寫，非本工具自動產生文案）" style="margin-top:4px;" onchange="updateFaqAnswer('${f.id}',this.value)">${escapeHtml(f.answerDraft || "")}</textarea>`
+          : '<p class="hint" style="font-size:0.78rem;color:var(--color-muted);margin-top:4px;">本方案僅包含問題方向，不含完整 FAQ 文案撰寫；如需完整文案撰寫，需另行報價。</p>'}
         <div class="row" style="margin-top:4px;">
           <span class="tag ${f.status === 'adopted' ? 'tag-yes' : (f.status === 'rejected' ? 'tag-no' : '')}">${f.status === 'adopted' ? '已採用' : (f.status === 'rejected' ? '已刪除' : '候選')}</span>
           <div>
@@ -900,10 +1096,10 @@ function generateFaqCandidates(pageId) {
   if (!p) return;
   const topics = splitTopics(p.topics);
   const topic = topics[0] || p.title;
-  const existingQuestions = new Set(faqItems.filter(f => f.pageId === pageId).map(f => f.question));
+  const existingQuestions = new Set(faqItems.filter(f => f.pageId === pageId && faqBelongsToCurrentMode(f)).map(f => f.question));
   const candidates = FAQ_TEMPLATES.map(fn => fn(topic)).filter(q => !existingQuestions.has(q));
   if (!candidates.length) { showToast("目前模板已全數產生過，可手動編輯既有題目", true); return; }
-  const newItems = candidates.map(q => ({ id: uid("faq"), pageId, question: q, status: "candidate" }));
+  const newItems = candidates.map(q => ({ id: uid("faq"), pageId, question: q, status: "candidate", mode }));
   persist("geodesign:v1:faq", () => faqItems.concat(newItems), v => { faqItems = v; renderFaq(); showToast(`已產生 ${newItems.length} 組候選問題`); });
 }
 
@@ -1015,53 +1211,136 @@ function updateTechField(pageId, stage, field, value) {
   }, v => { techByPage = v; });
 }
 
+// Markdown 特殊字元跳脫：頁面標題／主題標籤等使用者輸入的文字，直接拼進 Markdown 前先跳脫，
+// 避免使用者剛好打了 [ ] ( ) 之類字元，把 llms.txt 的連結格式弄壞。
+function mdEscape(s) {
+  return String(s || "").replace(/[\\`*_\[\]()#+!]/g, "\\$&");
+}
+
+// 只允許 http/https 網址進入 llms.txt；使用者填的網址若格式有誤或是其他協定（例如 javascript:），
+// 一律退回品牌官方網域，不要把不明協定的字串原樣寫進去。
+function safePageUrl(p, domainBase) {
+  const raw = p.url ? (p.url.startsWith("http") ? p.url : domainBase.replace(/\/$/, "") + (p.url.startsWith("/") ? p.url : "/" + p.url)) : domainBase;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return domainBase;
+    return u.href;
+  } catch (e) {
+    return domainBase;
+  }
+}
+
+// llms.txt 草稿是把「當下」的品牌／頁面資料快照成文字，之後如果又編輯了品牌或頁面，
+// 草稿內容就跟不上最新資料了。這裡記錄產出當下的資料指紋，之後只要資料一變，
+// renderLlmsTxtStaleness() 就會在畫面上顯示過期提醒，匯出報告時也會一併標註。
+let llmsTxtGeneratedFingerprint = null;
+
+function llmsTxtSourceFingerprint() {
+  return JSON.stringify({
+    brand: { name: brand.name, industry: brand.industry, products: brand.products, audience: brand.audience, domain: brand.officialDomain },
+    pages: pages.map(p => ({ id: p.id, title: p.title, url: p.url, topics: p.topics, language: p.language })),
+  });
+}
+
+function renderLlmsTxtStaleness() {
+  const warnEl = document.getElementById("llmsTxtStaleWarn");
+  const out = document.getElementById("llmsTxtOutput");
+  if (!warnEl || !out) return;
+  const stale = out.value && llmsTxtGeneratedFingerprint !== null && llmsTxtGeneratedFingerprint !== llmsTxtSourceFingerprint();
+  warnEl.innerHTML = stale ? '<div class="quota-warn">品牌或頁面資料在產出這份草稿後又變更過，目前顯示的內容可能已經過期，請重新按上方按鈕產出最新版本。</div>' : "";
+}
+
 function generateLlmsTxt() {
   // llms.txt 是給生成式 AI 讀的 Markdown 格式網站摘要（llmstxt.org 非正式規範），
   // 不是 robots.txt 的爬蟲存取規則語法，兩者用途不同，故分開產出。
   const domain = brand.officialDomain ? "https://" + brand.officialDomain.replace(/^https?:\/\//, "") : "https://example.com";
   const lines = [];
-  lines.push("# " + (brand.name || "（尚未填寫品牌名稱）"));
+  lines.push("# " + mdEscape(brand.name || "（尚未填寫品牌名稱）"));
   lines.push("");
   const summaryParts = [];
-  if (brand.industry) summaryParts.push(brand.industry);
-  if (brand.products) summaryParts.push(brand.products);
-  lines.push("> " + (summaryParts.length ? summaryParts.join("，") : "（請先填寫品牌基本資料以產出摘要）") + (brand.audience ? "，主要服務對象：" + brand.audience : ""));
+  if (brand.industry) summaryParts.push(mdEscape(brand.industry));
+  if (brand.products) summaryParts.push(mdEscape(brand.products));
+  lines.push("> " + (summaryParts.length ? summaryParts.join("，") : "（請先填寫品牌基本資料以產出摘要）") + (brand.audience ? "，主要服務對象：" + mdEscape(brand.audience) : ""));
   lines.push("");
   lines.push("## 主要頁面");
   lines.push("");
   pages.forEach(p => {
-    const url = p.url ? (p.url.startsWith("http") ? p.url : domain.replace(/\/$/, "") + (p.url.startsWith("/") ? p.url : "/" + p.url)) : domain;
-    lines.push("- [" + (p.title || "未命名頁面") + "](" + url + ")" + (p.topics ? "：" + p.topics : ""));
+    lines.push("- [" + mdEscape(p.title || "未命名頁面") + "](" + safePageUrl(p, domain) + ")" + (p.topics ? "：" + mdEscape(p.topics) : ""));
   });
   document.getElementById("llmsTxtOutput").value = lines.join("\n");
+  llmsTxtGeneratedFingerprint = llmsTxtSourceFingerprint();
+  renderLlmsTxtStaleness();
   showToast("已產出 llms.txt 草稿（Markdown 格式），請人工確認後再部署到網站根目錄");
+}
+
+// 常見爬蟲清單：分「搜尋收錄」「AI 模型訓練」「AI 使用者即時瀏覽」三種用途，
+// 因為公司／客戶對這三種用途的允許意願通常不一樣，不該用同一個規則一刀切。
+// 名稱可能隨時間異動，請定期核對是否仍是各家官方最新文件所列的名稱。
+const AI_CRAWLER_LIST = [
+  { key: "Googlebot", label: "Googlebot（Google 搜尋收錄）", purpose: "search" },
+  { key: "Bingbot", label: "Bingbot（Bing 搜尋收錄）", purpose: "search" },
+  { key: "PerplexityBot", label: "PerplexityBot（Perplexity 搜尋／答案引擎收錄）", purpose: "search" },
+  { key: "GPTBot", label: "GPTBot（OpenAI，模型訓練資料蒐集）", purpose: "training" },
+  { key: "ClaudeBot", label: "ClaudeBot（Anthropic，模型訓練資料蒐集）", purpose: "training" },
+  { key: "Google-Extended", label: "Google-Extended（Google 生成式 AI 訓練用途）", purpose: "training" },
+  { key: "Applebot-Extended", label: "Applebot-Extended（Apple 生成式 AI 訓練用途）", purpose: "training" },
+  { key: "ChatGPT-User", label: "ChatGPT-User（ChatGPT 使用者即時瀏覽觸發）", purpose: "user" },
+  { key: "Claude-User", label: "Claude-User（Claude 使用者即時瀏覽觸發）", purpose: "user" },
+  { key: "PerplexityUser", label: "PerplexityUser（Perplexity 使用者即時瀏覽觸發）", purpose: "user" },
+];
+const CRAWLER_PURPOSE_LABEL = { search: "搜尋收錄", training: "AI 模型訓練", user: "AI 使用者即時瀏覽" };
+
+function renderCrawlerPolicy() {
+  const el = document.getElementById("crawlerPolicyList");
+  if (!el) return;
+  const groups = ["search", "training", "user"];
+  el.innerHTML = groups.map(purpose => {
+    const items = AI_CRAWLER_LIST.filter(c => c.purpose === purpose);
+    return `<div style="margin-top:8px;"><div class="hint" style="font-size:0.78rem;font-weight:600;">${CRAWLER_PURPOSE_LABEL[purpose]}</div>` +
+      items.map(c => `<div class="row" style="margin-top:4px;">
+        <label style="margin:0;flex:1;font-size:0.85rem;">${escapeHtml(c.label)}</label>
+        <select style="width:auto;" onchange="updateCrawlerPolicy('${c.key}',this.value)">
+          <option value="unchecked" ${(crawlerPolicy[c.key] || "unchecked") === "unchecked" ? "selected" : ""}>尚未決定</option>
+          <option value="allow" ${crawlerPolicy[c.key] === "allow" ? "selected" : ""}>允許</option>
+          <option value="disallow" ${crawlerPolicy[c.key] === "disallow" ? "selected" : ""}>禁止</option>
+        </select>
+      </div>`).join("") + `</div>`;
+  }).join("");
+}
+
+function updateCrawlerPolicy(key, value) {
+  persist("geodesign:v1:crawlerpolicy", () => Object.assign({}, crawlerPolicy, { [key]: value }), v => { crawlerPolicy = v; });
 }
 
 function generateRobotsDraft() {
   // 這裡才是真正的 robots.txt／AI 爬蟲允許清單語法，與上面的 llms.txt 分開產出、分開部署。
+  // 不預設全站 Allow：只有使用者明確決定過的爬蟲，才會被寫進草稿；尚未決定的一律不輸出，
+  // 避免工具幫忙做出「全面允許」這種實際上不是使用者決定的政策。
+  const decided = AI_CRAWLER_LIST.filter(c => crawlerPolicy[c.key] === "allow" || crawlerPolicy[c.key] === "disallow");
+  const undecided = AI_CRAWLER_LIST.filter(c => !crawlerPolicy[c.key] || crawlerPolicy[c.key] === "unchecked");
   const lines = [
     "# robots.txt／AI 爬蟲允許清單建議草稿",
     "# 產出時間：" + todayLocalISODate(),
-    "# 這是建議草稿，實際 User-agent 名稱與是否允許存取，請與工程／法遵人員確認後再部署",
+    "# 這只是新增規則的草稿，請與現有 robots.txt 內容合併，不要直接整份覆蓋上線；",
+    "# 實際是否允許存取，請與工程／法遵人員逐一確認後再部署。",
     "",
-    "User-agent: *",
-    "Allow: /",
-    "",
-    "# 常見生成式 AI／搜尋爬蟲（是否允許請依公司政策逐一確認，非本工具自動判斷）",
-    "User-agent: GPTBot",
-    "Allow: /",
-    "",
-    "User-agent: ClaudeBot",
-    "Allow: /",
-    "",
-    "User-agent: Google-Extended",
-    "Allow: /",
-    "",
-    "User-agent: PerplexityBot",
-    "Allow: /",
   ];
+  if (!decided.length) {
+    lines.push("# 尚未決定任何爬蟲的允許／禁止政策，請先在工具畫面上逐一設定後再重新產出。");
+  } else {
+    decided.forEach(c => {
+      lines.push("# " + c.label);
+      lines.push("User-agent: " + c.key);
+      lines.push(crawlerPolicy[c.key] === "allow" ? "Allow: /" : "Disallow: /");
+      lines.push("");
+    });
+  }
+  if (undecided.length) {
+    lines.push("# 以下爬蟲尚未決定政策，本草稿不會輸出任何規則，請自行評估：");
+    undecided.forEach(c => lines.push("# - " + c.label));
+  }
   document.getElementById("robotsOutput").value = lines.join("\n");
-  showToast("已產出 robots／AI 爬蟲允許清單草稿，請人工確認後再部署");
+  showToast(decided.length ? "已產出 robots／AI 爬蟲允許清單草稿，請人工確認後再部署" : "尚未決定任何爬蟲政策，請先設定後再產出", !decided.length);
 }
 
 // ============ 網站語意結構建議 ============
@@ -1094,15 +1373,24 @@ function updateSemanticNote(pageId, value) {
 
 // ============ Entity 一致性 ============
 
+const ENTITY_DATA_TYPE_LABEL = { name: "正式名稱", alias: "別名", url: "官方網址", logo: "Logo", phone: "電話", address: "地址", social: "社群帳號" };
+
 function addEntity() {
+  const dataType = document.getElementById("entityDataType").value;
   const source = document.getElementById("entitySource").value.trim();
   const writtenAs = document.getElementById("entityWrittenAs").value.trim();
+  const expectedValue = document.getElementById("entityExpectedValue").value.trim();
+  const suggestion = document.getElementById("entitySuggestion").value.trim();
+  const sameAs = document.getElementById("entitySameAs").value.trim();
   if (!source || !writtenAs) { showToast("請填寫出現位置與實際寫法", true); return; }
-  const item = { id: uid("entity"), source, writtenAs };
+  const item = { id: uid("entity"), dataType, source, writtenAs, expectedValue, suggestion, sameAs };
   persist("geodesign:v1:entity", () => entityItems.concat([item]), v => {
     entityItems = v;
     document.getElementById("entitySource").value = "";
     document.getElementById("entityWrittenAs").value = "";
+    document.getElementById("entityExpectedValue").value = "";
+    document.getElementById("entitySuggestion").value = "";
+    document.getElementById("entitySameAs").value = "";
     renderEntity();
     showToast("已新增紀錄");
   });
@@ -1112,16 +1400,30 @@ function deleteEntity(id) {
   persist("geodesign:v1:entity", () => entityItems.filter(e => e.id !== id), v => { entityItems = v; renderEntity(); });
 }
 
+// 「正式名稱」類型若沒填預期標準值，沿用舊行為自動比對品牌名稱；其他類型（別名／網址／電話等）
+// 沒有一個天生的「標準值」來源，沒填就視為尚未提供，不能一致比對。
+function entityExpected(e) {
+  if (e.expectedValue) return e.expectedValue;
+  if ((e.dataType || "name") === "name") return brand.name || "";
+  return "";
+}
+
 function renderEntity() {
   const el = document.getElementById("entityList");
   if (!entityItems.length) { el.innerHTML = '<div class="empty">尚無紀錄</div>'; return; }
-  el.innerHTML = '<table class="entries"><thead><tr><th>出現位置</th><th>實際寫法</th><th>是否一致</th><th></th></tr></thead><tbody>' +
+  el.innerHTML = '<table class="entries"><thead><tr><th>類型</th><th>出現位置</th><th>實際寫法</th><th>預期標準值</th><th>是否一致</th><th>修正建議</th><th>sameAs</th><th></th></tr></thead><tbody>' +
     entityItems.map(e => {
-      const consistent = normName(e.writtenAs) === normName(brand.name);
+      const expected = entityExpected(e);
+      const hasExpected = !!expected;
+      const consistent = hasExpected && normName(e.writtenAs) === normName(expected);
       return `<tr>
+        <td>${escapeHtml(ENTITY_DATA_TYPE_LABEL[e.dataType || "name"])}</td>
         <td>${escapeHtml(e.source)}</td>
         <td>${escapeHtml(e.writtenAs)}</td>
-        <td>${brand.name ? (consistent ? '<span class="tag tag-yes">一致</span>' : '<span class="tag tag-fail">不一致</span>') : '<span class="tag tag-no">尚未填寫品牌名稱</span>'}</td>
+        <td>${escapeHtml(expected || "（未提供）")}</td>
+        <td>${hasExpected ? (consistent ? '<span class="tag tag-yes">一致</span>' : '<span class="tag tag-fail">不一致</span>') : '<span class="tag tag-no">尚未提供標準值</span>'}</td>
+        <td>${escapeHtml(e.suggestion || "")}</td>
+        <td>${e.sameAs ? `<a href="${escapeHtml(e.sameAs)}" target="_blank" rel="noopener noreferrer">連結</a>` : ""}</td>
         <td><button class="btn btn-danger btn-sm" onclick="deleteEntity('${e.id}')">刪除</button></td>
       </tr>`;
     }).join("") + '</tbody></table>';
@@ -1142,6 +1444,14 @@ function renderAuthority() {
         <label style="margin:0;display:flex;align-items:center;gap:4px;font-size:0.85rem;">已有外部佐證：${triStateSelect(`updateAuthorityField('${p.id}','hasSource',this.value)`, hasSource)}</label>
       </div>
       ${hasSource !== "yes" ? '<div class="hint" style="font-size:0.82rem;color:var(--color-muted);margin-top:4px;">建議在提到具體數據／主張處，加入產業報告、官方數據或第三方評測連結佐證。</div>' : ''}
+      <div class="field-row" style="margin-top:6px;">
+        <div class="field" style="margin-bottom:0;"><label style="font-size:0.78rem;">來源名稱（選填）</label><input type="text" value="${escapeHtml(rec.sourceName || "")}" onchange="updateAuthorityField('${p.id}','sourceName',this.value)"></div>
+        <div class="field" style="margin-bottom:0;"><label style="font-size:0.78rem;">來源網址（選填）</label><input type="text" value="${escapeHtml(rec.sourceUrl || "")}" onchange="updateAuthorityField('${p.id}','sourceUrl',this.value)"></div>
+      </div>
+      <div class="field-row" style="margin-top:6px;">
+        <div class="field" style="margin-bottom:0;"><label style="font-size:0.78rem;">支持的主張（選填）</label><input type="text" value="${escapeHtml(rec.claim || "")}" onchange="updateAuthorityField('${p.id}','claim',this.value)"></div>
+        <div class="field" style="margin-bottom:0;"><label style="font-size:0.78rem;">建議放置位置（選填）</label><input type="text" value="${escapeHtml(rec.placement || "")}" onchange="updateAuthorityField('${p.id}','placement',this.value)"></div>
+      </div>
     </div>`;
   }).join("");
 }
@@ -1214,27 +1524,29 @@ function buildVerificationPrompt() {
 
   lines.push("\n【Schema 規劃】");
   pages.forEach(p => {
-    const r = schemaByPage[p.id];
-    if (r) lines.push("- " + p.title + "：" + r.schemaType + "\n" + (r.jsonld || ""));
+    const r = getEffectiveSchema(p);
+    lines.push("- " + p.title + "：" + r.schemaType + (r.customized ? "（已人工調整）" : "（自動模板）") + "\n" + (r.jsonld || ""));
   });
 
-  lines.push("\n【已採用 FAQ】");
-  faqItems.filter(f => f.status === "adopted").forEach(f => {
+  lines.push("\n【已採用 " + (mode === "existing" ? "FAQ 問題方向" : "品牌問答庫") + "】");
+  faqItems.filter(f => f.status === "adopted" && faqBelongsToCurrentMode(f)).forEach(f => {
     const p = pageById(f.pageId);
-    lines.push("- (" + (p ? p.title : "") + ") " + f.question);
+    lines.push("- (" + (p ? p.title : "") + ") Q：" + f.question + (mode === "newsite" ? (f.answerDraft ? "\n  A：" + f.answerDraft : "\n  A：（尚未填寫答案草稿）") : ""));
   });
 
   if (mode === "existing") {
-    lines.push("\n【核心頁面文案健檢缺口】");
+    lines.push("\n【核心頁面文案健檢】");
     corePages().forEach(p => {
       const rec = copyCheckByPage[p.id] || {};
-      const gaps = COPY_CHECK_FIELDS.filter(f => (rec[f.key] || "na") === "no" || rec[f.key] === "partial");
-      if (gaps.length) lines.push("- " + p.title + "：" + gaps.map(g => g.label).join("、"));
+      const gaps = COPY_CHECK_FIELDS.filter(f => (rec[f.key] || "unchecked") === "no" || rec[f.key] === "partial");
+      if (gaps.length) lines.push("- " + p.title + "：缺漏 " + gaps.map(g => g.label).join("、") + (rec.notes ? "／備註：" + rec.notes : ""));
+      else if (rec.notes) lines.push("- " + p.title + "：備註：" + rec.notes);
     });
-    lines.push("\n【內部連結建議（已採用）】");
-    linkItems.filter(l => l.status === "adopted").forEach(l => {
+    lines.push("\n【內部連結建議（全部，含未採用）】");
+    currentLinkSuggestions.forEach(l => {
       const pa = pageById(l.pageA), pb = pageById(l.pageB);
-      lines.push("- " + (pa ? pa.title : "") + " <-> " + (pb ? pb.title : ""));
+      const statusLabel = l.status === "adopted" ? "已採用" : (l.status === "rejected" ? "不採用" : "建議中");
+      lines.push("- " + (pa ? pa.title : "") + " <-> " + (pb ? pb.title : "") + "（" + statusLabel + "）");
     });
   }
 
@@ -1245,7 +1557,7 @@ function buildVerificationPrompt() {
     ["pre", "post"].forEach(stage => {
       const s = r[stage];
       if (!s) return;
-      lines.push("- " + p.title + "（" + (stage === "pre" ? "上線前" : "上線後") + "）：index=" + (s.indexStatus || "未檢查") + ", canonical=" + TRI_LABEL[s.canonicalOk || "unchecked"] + ", 可存取=" + TRI_LABEL[s.accessOk || "unchecked"]);
+      lines.push("- " + p.title + "（" + (stage === "pre" ? "上線前" : "上線後") + "）：index=" + INDEX_LABEL[s.indexStatus || "unknown"] + ", canonical=" + TRI_LABEL[s.canonicalOk || "unchecked"] + ", 可存取=" + TRI_LABEL[s.accessOk || "unchecked"] + ", schema已套用=" + TRI_LABEL[s.schemaApplied || "unchecked"] + ", 檢查日期=" + (s.checkedDate || "未填"));
     });
   });
 
@@ -1256,8 +1568,36 @@ function buildVerificationPrompt() {
   if (robotsEl && robotsEl.value) lines.push("\n【robots／AI 爬蟲允許清單草稿】\n" + robotsEl.value);
 
   if (mode === "newsite") {
+    lines.push("\n【網站語意結構建議】");
+    pages.forEach(p => {
+      const rec = semanticByPage[p.id] || {};
+      if (rec.notes) lines.push("- " + p.title + "：實際段落安排備註：" + rec.notes);
+    });
+
+    lines.push("\n【權威來源佈局】");
+    pages.forEach(p => {
+      const rec = authorityByPage[p.id] || {};
+      const has = rec.hasSource || "unchecked";
+      let line = "- " + p.title + "：已有外部佐證＝" + TRI_LABEL[has];
+      if (rec.sourceName) line += "，來源：" + rec.sourceName;
+      if (rec.sourceUrl) line += "（" + rec.sourceUrl + "）";
+      if (rec.claim) line += "，支持主張：" + rec.claim;
+      if (rec.placement) line += "，建議放置：" + rec.placement;
+      lines.push(line);
+    });
+
+    lines.push("\n【內容可信度標記】");
+    pages.forEach(p => {
+      const r = credibilityByPage[p.id] || {};
+      lines.push("- " + p.title + "：作者＝" + TRI_LABEL[r.hasAuthor || "unchecked"] + "，更新日＝" + TRI_LABEL[r.hasDate || "unchecked"] + "，資料來源＝" + TRI_LABEL[r.hasSourceCite || "unchecked"]);
+    });
+
     lines.push("\n【Entity 一致性紀錄】");
-    entityItems.forEach(e => lines.push("- " + e.source + "：" + e.writtenAs));
+    entityItems.forEach(e => {
+      const expected = entityExpected(e);
+      const consistent = expected && normName(e.writtenAs) === normName(expected);
+      lines.push("- [" + (ENTITY_DATA_TYPE_LABEL[e.dataType || "name"]) + "] " + e.source + "：實際「" + e.writtenAs + "」／標準「" + (expected || "未提供") + "」／" + (expected ? (consistent ? "一致" : "不一致") : "無法比對") + (e.suggestion ? "／建議：" + e.suggestion : ""));
+    });
   }
 
   lines.push("\n請指出：1）明顯錯誤或矛盾之處　2）遺漏但應該補充的重點　3）具體修改建議。");
@@ -1270,19 +1610,22 @@ function generateVerificationPrompt() {
   showToast("已產生驗證用 Prompt，可再自行編輯後複製");
 }
 
-// 先開新分頁、再寫剪貼簿：避免非同步的剪貼簿寫入把使用者手勢的時序拖長，導致瀏覽器判定成非使用者觸發而擋下彈出視窗
-function copyPromptAndOpenAi() {
-  const promptText = document.getElementById("aiVerifyPrompt").value;
-  if (!promptText.trim()) { showToast("請先產生驗證用 Prompt", true); return; }
-  const url = AI_PLATFORM_URLS[document.getElementById("aiPlatformSelect").value] || AI_PLATFORM_URLS.chatgpt;
+// 先開新分頁、再寫剪貼簿：避免非同步的剪貼簿寫入把使用者手勢的時序拖長，導致瀏覽器判定成非使用者觸發而擋下彈出視窗。
+// 通用版本：從指定 id 的 textarea 讀取 Prompt 內容——「AI 內容驗證」附錄跟「核心頁面文案健檢」的頁面層級 AI 輔助
+// 共用這一套複製並開啟 AI 的邏輯，只有讀取哪個 textarea 不同。
+function copyPromptFromTextareaAndOpenAi(textareaId) {
+  const el = document.getElementById(textareaId);
+  const promptText = el ? el.value : "";
+  if (!promptText.trim()) { showToast("請先產生 Prompt", true); return; }
+  const platformSelect = document.getElementById("aiPlatformSelect");
+  const url = AI_PLATFORM_URLS[(platformSelect && platformSelect.value) || "chatgpt"] || AI_PLATFORM_URLS.chatgpt;
   const win = window.open(url, "_blank");
   // 手動切斷 opener 關聯（等同 noopener 的安全效果），但不直接傳入 "noopener" 字串——
   // 部分瀏覽器在帶 noopener 時 window.open 一律回傳 null，會讓下面的「是否被瀏覽器擋下」判斷失效。
   if (win) { try { win.opener = null; } catch (e) { /* 跨瀏覽器行為差異，略過即可 */ } }
   if (!win) {
     showToast("瀏覽器擋下了新分頁，請手動開啟 AI 網站，上方 Prompt 已幫你選取好可直接複製", true);
-    const el = document.getElementById("aiVerifyPrompt");
-    el.focus(); el.select();
+    if (el) { el.focus(); el.select(); }
     return;
   }
   try {
@@ -1290,12 +1633,15 @@ function copyPromptAndOpenAi() {
       .then(() => showToast("已複製 Prompt 並開啟 AI，貼上後送出即可"))
       .catch(() => {
         showToast("已開啟 AI，但複製失敗，請手動選取複製上方 Prompt", true);
-        const el = document.getElementById("aiVerifyPrompt");
-        el.focus(); el.select();
+        if (el) { el.focus(); el.select(); }
       });
   } catch (e) {
     showToast("已開啟 AI，但複製失敗，請手動選取複製上方 Prompt", true);
   }
+}
+
+function copyPromptAndOpenAi() {
+  copyPromptFromTextareaAndOpenAi("aiVerifyPrompt");
 }
 
 function saveAiVerification() {
@@ -1337,7 +1683,8 @@ function exportReport() {
   html += `<h1>GEO 網站設計健檢報告</h1><p class="muted">模式：${escapeHtml(MODE_LABELS[mode])}｜產出時間：${now}</p>`;
   html += `<h2>品牌基本資料</h2><p>品牌名稱：${escapeHtml(brand.name)}<br>官方網域：${escapeHtml(brand.officialDomain)}<br>產業別：${escapeHtml(brand.industry)}<br>產品／服務：${escapeHtml(brand.products)}<br>目標受眾：${escapeHtml(brand.audience)}</p>`;
 
-  html += `<h2>頁面清單（共 ${pages.length} 頁）</h2><table><tr><th>標題</th><th>網址</th><th>類型</th><th>重點頁</th><th>語言</th><th>主題標籤</th><th>備註</th></tr>` +
+  html += `<h2>頁面清單（共 ${pages.length} 頁）</h2>` + (mode === "newsite" ? `<p class="muted">新站架設階段網站尚未上線，下表「規劃路徑」為預計路徑，非現有網址；本清單代表依 SEO 關鍵字與競品分析產出的網站架構規劃頁面。</p>` : "") +
+    `<table><tr><th>標題</th><th>${mode === "newsite" ? "規劃路徑" : "網址"}</th><th>類型</th><th>重點頁</th><th>語言</th><th>主題標籤</th><th>備註</th></tr>` +
     pages.map(p => `<tr><td>${escapeHtml(p.title)}</td><td>${escapeHtml(p.url || "")}</td><td>${escapeHtml(PAGE_TYPE_LABEL[p.type] || p.type)}</td><td>${p.isCore ? "是" : ""}</td><td>${escapeHtml(p.language || "zh-TW")}</td><td>${escapeHtml(p.topics || "")}</td><td>${escapeHtml(p.notes || "")}</td></tr>`).join("") + `</table>`;
 
   html += `<h2>Schema 規劃</h2>` + pages.map(p => {
@@ -1349,14 +1696,18 @@ function exportReport() {
   if (mode === "existing") {
     html += `<h2>核心頁面文案健檢</h2>` + corePages().map(p => {
       const rec = copyCheckByPage[p.id] || {};
+      const gaps = COPY_CHECK_FIELDS.filter(f => (rec[f.key] || "unchecked") === "no" || rec[f.key] === "partial");
+      const suggestText = gaps.map(g => "· " + g.label + "：" + COPY_CHECK_SUGGEST[g.key]).join("<br>");
       return `<h3 style="margin-bottom:4px;">${escapeHtml(p.title)}</h3><table><tr>` + COPY_CHECK_FIELDS.map(f => `<th>${f.label}</th>`).join("") + `</tr><tr>` +
-        COPY_CHECK_FIELDS.map(f => `<td>${COPY_CHECK_STATUS[rec[f.key] || "na"]}</td>`).join("") + `</tr></table>` +
-        (rec.notes ? `<p class="muted" style="margin:4px 0 0;">備註：${escapeHtml(rec.notes)}</p>` : "");
+        COPY_CHECK_FIELDS.map(f => `<td>${COPY_CHECK_STATUS[rec[f.key] || "unchecked"]}</td>`).join("") + `</tr></table>` +
+        (rec.notes ? `<p class="muted" style="margin:4px 0 0;">備註：${escapeHtml(rec.notes)}</p>` : "") +
+        (suggestText ? `<p class="muted" style="margin:4px 0 0;">補充方向建議：<br>${suggestText}</p>` : "") +
+        (rec.aiCheckNote ? `<p class="muted" style="margin:4px 0 0;">AI 健檢意見（僅供參考，非本工具規則邏輯產出，請自行核實後再採用）：</p><pre>${escapeHtml(rec.aiCheckNote)}</pre>` : "");
     }).join("");
   }
 
-  html += `<h2>FAQ／品牌問答庫（已採用）</h2><table><tr><th>頁面</th><th>問題</th><th>答案草稿</th></tr>` +
-    faqItems.filter(f => f.status === "adopted").map(f => { const p = pageById(f.pageId); return `<tr><td>${escapeHtml(p ? p.title : "")}</td><td>${escapeHtml(f.question)}</td><td>${escapeHtml(f.answerDraft || "（尚未填寫，需人工撰寫）")}</td></tr>`; }).join("") + `</table>`;
+  html += `<h2>${mode === "existing" ? "FAQ 問題方向（已採用，僅方向不含文案撰寫）" : "品牌問答庫（已採用）"}</h2><table><tr><th>頁面</th><th>問題</th>${mode === "newsite" ? "<th>答案草稿</th>" : ""}</tr>` +
+    faqItems.filter(f => f.status === "adopted" && faqBelongsToCurrentMode(f)).map(f => { const p = pageById(f.pageId); return `<tr><td>${escapeHtml(p ? p.title : "")}</td><td>${escapeHtml(f.question)}</td>${mode === "newsite" ? `<td>${escapeHtml(f.answerDraft || "（尚未填寫，需人工撰寫）")}</td>` : ""}</tr>`; }).join("") + `</table>`;
 
   if (mode === "existing") {
     html += `<h2>內部連結建議（全部，含未採用）</h2><table><tr><th>頁面A</th><th>頁面B</th><th>共同主題</th><th>狀態</th></tr>` +
@@ -1368,7 +1719,7 @@ function exportReport() {
       const r = techByPage[p.id] || {};
       return ["pre", "post"].map(stage => {
         const s = r[stage] || {};
-        return `<tr><td>${escapeHtml(p.title)}</td><td>${stage === "post" ? "上線後" : "上線前"}</td><td>${escapeHtml(s.indexStatus || "未檢查")}</td><td>${TRI_LABEL[s.canonicalOk || "unchecked"]}</td><td>${TRI_LABEL[s.accessOk || "unchecked"]}</td><td>${TRI_LABEL[s.schemaApplied || "unchecked"]}</td><td>${escapeHtml(s.checkedDate || "")}</td></tr>`;
+        return `<tr><td>${escapeHtml(p.title)}</td><td>${stage === "post" ? "上線後" : "上線前"}</td><td>${escapeHtml(INDEX_LABEL[s.indexStatus || "unknown"])}</td><td>${TRI_LABEL[s.canonicalOk || "unchecked"]}</td><td>${TRI_LABEL[s.accessOk || "unchecked"]}</td><td>${TRI_LABEL[s.schemaApplied || "unchecked"]}</td><td>${escapeHtml(s.checkedDate || "")}</td></tr>`;
       });
     }).join("") + `</table>`;
 
@@ -1379,11 +1730,20 @@ function exportReport() {
       return `<h3 style="margin-bottom:4px;">${escapeHtml(p.title)}</h3><pre>${escapeHtml(skeleton.join("\n"))}</pre>` + (rec.notes ? `<p class="muted" style="margin:0 0 4px;">實際段落安排備註：${escapeHtml(rec.notes)}</p>` : "");
     }).join("");
 
-    html += `<h2>Entity 一致性</h2><table><tr><th>出現位置</th><th>實際寫法</th><th>是否一致</th></tr>` +
-      entityItems.map(e => `<tr><td>${escapeHtml(e.source)}</td><td>${escapeHtml(e.writtenAs)}</td><td>${normName(e.writtenAs) === normName(brand.name) ? "一致" : "不一致"}</td></tr>`).join("") + `</table>`;
+    html += `<h2>Entity 一致性</h2><table><tr><th>類型</th><th>出現位置</th><th>實際寫法</th><th>預期標準值</th><th>是否一致</th><th>修正建議</th><th>sameAs</th></tr>` +
+      entityItems.map(e => {
+        const expected = entityExpected(e);
+        const consistent = expected && normName(e.writtenAs) === normName(expected);
+        return `<tr><td>${escapeHtml(ENTITY_DATA_TYPE_LABEL[e.dataType || "name"])}</td><td>${escapeHtml(e.source)}</td><td>${escapeHtml(e.writtenAs)}</td><td>${escapeHtml(expected || "（未提供）")}</td><td>${expected ? (consistent ? "一致" : "不一致") : "無法比對"}</td><td>${escapeHtml(e.suggestion || "")}</td><td>${e.sameAs ? escapeHtml(e.sameAs) : ""}</td></tr>`;
+      }).join("") + `</table>`;
 
-    html += `<h2>權威來源佈局</h2><table><tr><th>頁面</th><th>已有外部佐證</th><th>建議</th></tr>` +
-      pages.map(p => { const has = (authorityByPage[p.id] || {}).hasSource || "unchecked"; return `<tr><td>${escapeHtml(p.title)}</td><td>${TRI_LABEL[has]}</td><td>${has !== "yes" ? "建議在提到具體數據／主張處，加入產業報告、官方數據或第三方評測連結佐證。" : ""}</td></tr>`; }).join("") + `</table>`;
+    html += `<h2>權威來源佈局</h2><table><tr><th>頁面</th><th>已有外部佐證</th><th>來源名稱</th><th>來源網址</th><th>支持的主張</th><th>建議放置位置</th></tr>` +
+      pages.map(p => {
+        const rec = authorityByPage[p.id] || {};
+        const has = rec.hasSource || "unchecked";
+        const placement = rec.placement || (has !== "yes" ? "建議在提到具體數據／主張處，加入產業報告、官方數據或第三方評測連結佐證。" : "");
+        return `<tr><td>${escapeHtml(p.title)}</td><td>${TRI_LABEL[has]}</td><td>${escapeHtml(rec.sourceName || "")}</td><td>${escapeHtml(rec.sourceUrl || "")}</td><td>${escapeHtml(rec.claim || "")}</td><td>${escapeHtml(placement)}</td></tr>`;
+      }).join("") + `</table>`;
 
     html += `<h2>內容可信度標記</h2><table><tr><th>頁面</th><th>作者</th><th>更新日</th><th>資料來源</th></tr>` +
       pages.map(p => { const r = credibilityByPage[p.id] || {}; return `<tr><td>${escapeHtml(p.title)}</td><td>${TRI_LABEL[r.hasAuthor || "unchecked"]}</td><td>${TRI_LABEL[r.hasDate || "unchecked"]}</td><td>${TRI_LABEL[r.hasSourceCite || "unchecked"]}</td></tr>`; }).join("") + `</table>`;
@@ -1393,7 +1753,10 @@ function exportReport() {
   const robotsOutEl = document.getElementById("robotsOutput");
   if ((llmsOutEl && llmsOutEl.value) || (robotsOutEl && robotsOutEl.value)) {
     html += `<h2>llms.txt 與 robots／AI 爬蟲允許清單草稿</h2><p class="muted">兩者用途不同、需分開部署到網站根目錄，且都需人工確認內容正確後再交由網站人員上線。</p>`;
-    if (llmsOutEl && llmsOutEl.value) html += `<h3 style="margin-bottom:4px;">llms.txt（Markdown 格式）</h3><pre>${escapeHtml(llmsOutEl.value)}</pre>`;
+    if (llmsOutEl && llmsOutEl.value) {
+      const llmsStale = llmsTxtGeneratedFingerprint !== null && llmsTxtGeneratedFingerprint !== llmsTxtSourceFingerprint();
+      html += `<h3 style="margin-bottom:4px;">llms.txt（Markdown 格式）</h3>` + (llmsStale ? `<p class="muted" style="color:#B45309;">⚠ 品牌或頁面資料在產出這份草稿後又變更過，以下內容可能已經過期，建議重新產出後再匯出。</p>` : "") + `<pre>${escapeHtml(llmsOutEl.value)}</pre>`;
+    }
     if (robotsOutEl && robotsOutEl.value) html += `<h3 style="margin-bottom:4px;">robots／AI 爬蟲允許清單</h3><pre>${escapeHtml(robotsOutEl.value)}</pre>`;
   }
 
